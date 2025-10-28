@@ -158,7 +158,7 @@ func (p *Parser) parseExpr() ast.ASTNode {
 }
 
 func (p *Parser) parseAssignmentExpr() ast.ASTNode {
-	left := p.parseObjectExpr()
+	left := p.parseComparisonExpr()
 
 	if p.at().TokenType == tokens.Equals {
 		p.eat() // Advance past equals
@@ -166,6 +166,27 @@ func (p *Parser) parseAssignmentExpr() ast.ASTNode {
 		return ast.AssignmentExprNode{
 			Value:    value,
 			Assignee: left,
+		}
+	}
+
+	return left
+}
+
+func (p *Parser) parseComparisonExpr() ast.ASTNode {
+	left := p.parseObjectExpr()
+
+	for {
+		op := p.at().Value
+		if op == "==" || op == "!=" || op == "<" || op == ">" || op == "<=" || op == ">=" {
+			operator := p.eat().Value
+			right := p.parseObjectExpr()
+			left = ast.BinaryExprNode{
+				Left:     left,
+				Right:    right,
+				Operator: ast.BinaryOperatorKind(operator),
+			}
+		} else {
+			break
 		}
 	}
 
@@ -359,7 +380,7 @@ func (p *Parser) parsePrimaryExpr() ast.ASTNode {
 		return value
 	case tokens.OpenBracket:
 		p.eat() // Eat the opening bracket
-		
+
 		// Look-ahead to count elements for optimal pre-allocation
 		elementCount := 0
 		if p.at().TokenType != tokens.CloseBracket {
@@ -381,7 +402,7 @@ func (p *Parser) parsePrimaryExpr() ast.ASTNode {
 			}
 			elementCount++ // Add 1 for the last element (no trailing comma)
 		}
-		
+
 		// Pre-allocate with exact capacity
 		elements := make([]ast.ASTNode, 0, elementCount)
 
@@ -408,7 +429,7 @@ func (p *Parser) parsePrimaryExpr() ast.ASTNode {
 	case tokens.OpenBrace:
 		return p.parseObjectExpr()
 	case tokens.Quotes:
-		p.eat(); // Eat the opening quote
+		p.eat() // Eat the opening quote
 
 		val := p.eat().Value
 
@@ -416,7 +437,7 @@ func (p *Parser) parsePrimaryExpr() ast.ASTNode {
 		return ast.StringLiteralExprNode{
 			Value: val,
 		}
-	
+
 	default:
 		log.Fatalf("Unexpected token found during parsing: %v", p.at())
 		return nil

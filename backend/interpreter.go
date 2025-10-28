@@ -113,28 +113,95 @@ func evalBinaryOp(node ast.BinaryExprNode, env *Environment) RuntimeVal {
 	left := Evaluate(node.Left, env)
 	right := Evaluate(node.Right, env)
 
-	leftNum, leftIsNum := left.(NumberVal)
-	rightNum, rightIsNum := right.(NumberVal)
-
-	if !leftIsNum || !rightIsNum {
-		log.Fatalf("Cannot perform a binary operation on values not of type num. %v, %v", left, right)
-	}
-
 	switch node.Operator {
-	case "+":
-		return NumberVal{Value: leftNum.Value + rightNum.Value}
-	case "-":
-		return NumberVal{Value: leftNum.Value - rightNum.Value}
-	case "*":
-		return NumberVal{Value: leftNum.Value * rightNum.Value}
-	case "/":
-		return NumberVal{Value: leftNum.Value / rightNum.Value}
-	case "%":
-		return NumberVal{Value: float64(int(leftNum.Value) % int(rightNum.Value))}
+	case "+", "-", "*", "/", "%":
+		leftNum, leftIsNum := left.(NumberVal)
+		rightNum, rightIsNum := right.(NumberVal)
+		if !leftIsNum || !rightIsNum {
+			log.Fatalf("Cannot perform arithmetic operation on non-number values: %v, %v", left, right)
+		}
+		switch node.Operator {
+		case "+":
+			return NumberVal{Value: leftNum.Value + rightNum.Value}
+		case "-":
+			return NumberVal{Value: leftNum.Value - rightNum.Value}
+		case "*":
+			return NumberVal{Value: leftNum.Value * rightNum.Value}
+		case "/":
+			return NumberVal{Value: leftNum.Value / rightNum.Value}
+		case "%":
+			return NumberVal{Value: float64(int(leftNum.Value) % int(rightNum.Value))}
+		}
+	case "==", "!=":
+		// Allow equality/inequality for numbers, strings, booleans, and null
+		switch l := left.(type) {
+		case NumberVal:
+			if r, ok := right.(NumberVal); ok {
+				if node.Operator == "==" {
+					return BoolValue{Value: l.Value == r.Value}
+				} else {
+					return BoolValue{Value: l.Value != r.Value}
+				}
+			}
+		case StringVal:
+			if r, ok := right.(StringVal); ok {
+				if node.Operator == "==" {
+					return BoolValue{Value: l.Value == r.Value}
+				} else {
+					return BoolValue{Value: l.Value != r.Value}
+				}
+			}
+		case BoolValue:
+			if r, ok := right.(BoolValue); ok {
+				if node.Operator == "==" {
+					return BoolValue{Value: l.Value == r.Value}
+				} else {
+					return BoolValue{Value: l.Value != r.Value}
+				}
+			}
+			// Null equality: compare with Null singleton value
+		}
+		// Null equality: if left is Null
+		if left == Null {
+			if right == Null {
+				if node.Operator == "==" {
+					return BoolValue{Value: true}
+				} else {
+					return BoolValue{Value: false}
+				}
+			} else {
+				if node.Operator == "==" {
+					return BoolValue{Value: false}
+				} else {
+					return BoolValue{Value: true}
+				}
+			}
+		}
+		// If types don't match, not equal
+		if node.Operator == "==" {
+			return BoolValue{Value: false}
+		} else {
+			return BoolValue{Value: true}
+		}
+	case "<", ">", "<=", ">=":
+		leftNum, leftIsNum := left.(NumberVal)
+		rightNum, rightIsNum := right.(NumberVal)
+		if !leftIsNum || !rightIsNum {
+			log.Fatalf("Cannot perform comparison operation on non-number values: %v, %v", left, right)
+		}
+		switch node.Operator {
+		case "<":
+			return BoolValue{Value: leftNum.Value < rightNum.Value}
+		case ">":
+			return BoolValue{Value: leftNum.Value > rightNum.Value}
+		case "<=":
+			return BoolValue{Value: leftNum.Value <= rightNum.Value}
+		case ">=":
+			return BoolValue{Value: leftNum.Value >= rightNum.Value}
+		}
 	default:
 		log.Fatalf("Unknown binary operator: %s", node.Operator)
 	}
-
 	return Null
 }
 
@@ -153,12 +220,12 @@ func evalReturnStatement(node ast.ReturnStatementNode, env *Environment) Runtime
 func evalArray(node ast.ArrayLiteralExprNode, env *Environment) RuntimeVal {
 	// Pre-allocate slice with exact capacity needed
 	elements := make([]RuntimeVal, len(node.Elements))
-	
+
 	// Evaluate each element
 	for i, elem := range node.Elements {
 		elements[i] = Evaluate(elem, env)
 	}
-	
+
 	return ArrayVal{Elements: elements}
 }
 

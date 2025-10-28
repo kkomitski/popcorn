@@ -355,7 +355,7 @@ calculate(multiply, 4, 7);  // 28
 - [x] Array/list data structures with index access
 - [x] Early return with `pop` keyword
 - [ ] Boolean logic operators (`&&`, `||`, `!`)
-- [ ] Comparison operators (`==`, `!=`, `<`, `>`, `<=`, `>=`)
+- [x] Comparison operators (`==`, `!=`, `<`, `>`, `<=`, `>=`)
 - [ ] Control flow (`if`, `while`, `for`)
 - [x] String type and string operations
 - [ ] Array methods (push, pop, length, map, filter)

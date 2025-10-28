@@ -27,7 +27,16 @@ const (
 	CloseBracket // ]
 	BinaryOperator
 
+	// Strings
 	Quotes 			 // "
+
+	// Comparison operators
+	Equal        // ==
+	NotEqual     // !=
+	Less         // <
+	Greater      // >
+	LessEqual    // <=
+	GreaterEqual // >=
 
 	// End of File
 	EOF

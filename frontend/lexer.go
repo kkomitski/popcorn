@@ -28,6 +28,8 @@ func Tokenize(sourceCode string) []tokens.Token {
 		',': tokens.Comma,
 		'.': tokens.Dot,
 		'"': tokens.Quotes,
+		'<': tokens.Less,
+		'>': tokens.Greater,
 	}
 
 	keywords := map[string]tokens.TokenType{
@@ -37,11 +39,26 @@ func Tokenize(sourceCode string) []tokens.Token {
 		"pop":   tokens.Pop,
 	}
 
+	comparers := map[string]tokens.TokenType{
+		"==": tokens.Equal,
+		"!=": tokens.NotEqual,
+		"<=": tokens.LessEqual,
+		">=": tokens.GreaterEqual,
+	}
+
 	i := 0
 	for i < len(chars) {
 		c := chars[i]
 
-		if tokenType, ok := singleCharTokens[c]; ok {
+		if i+1 < len(chars) && utils.IsComparer(string(c)+string(chars[i+1])) {
+			comparer := string(c) + string(chars[i+1])
+
+			tokenType, _ := comparers[comparer]
+			tokensList = append(tokensList, tokens.Token{Value: string(c) + string(chars[i+1]), TokenType: tokenType})
+
+			i++
+			i++
+		} else if tokenType, ok := singleCharTokens[c]; ok {
 			tokensList = append(tokensList, tokens.Token{Value: string(c), TokenType: tokenType})
 			i++
 		} else if utils.IsDigit(c) {

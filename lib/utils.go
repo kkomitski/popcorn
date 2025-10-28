@@ -18,3 +18,7 @@ func Min(a, b int) int {
 	}
 	return b
 }
+
+func IsComparer(s string) bool {
+	return s == "==" || s == "!=" || s == "<=" || s == ">="
+}
