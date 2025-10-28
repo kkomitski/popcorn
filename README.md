@@ -227,7 +227,7 @@ The interactive REPL provides an enhanced development experience:
 ## 🏗️ Architecture
 
 ```
-bolang/
+popcorn/
 ├── main.go              # Entry point
 ├── frontend/            # Lexer and Parser
 │   ├── lexer.go        # Tokenization
@@ -272,7 +272,7 @@ bolang/
 
 ```bash
 # Clone or navigate to the project directory
-cd bolang
+cd popcorn
 
 # Build the binary
 go build -o pop main.go
@@ -357,7 +357,7 @@ calculate(multiply, 4, 7);  // 28
 - [ ] Boolean logic operators (`&&`, `||`, `!`)
 - [ ] Comparison operators (`==`, `!=`, `<`, `>`, `<=`, `>=`)
 - [ ] Control flow (`if`, `while`, `for`)
-- [ ] String type and string operations
+- [x] String type and string operations
 - [ ] Array methods (push, pop, length, map, filter)
 - [ ] Built-in standard library functions
 - [ ] Module system and imports
