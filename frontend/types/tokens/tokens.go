@@ -11,6 +11,7 @@ const (
 	Let
 	Const
 	Fn
+	Pop
 
 	// Grouping & Operators
 	Equals

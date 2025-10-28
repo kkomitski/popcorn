@@ -47,6 +47,8 @@ func (p *Parser) parseStatement() ast.ASTNode {
 		return p.parseVarDeclaration()
 	case tokens.Fn:
 		return p.parseFnDeclaration()
+	case tokens.Pop:
+		return p.parseFnReturn()
 	default:
 		expr := p.parseExpr()
 		// Eat the extra semicolon at the end of expression statements
@@ -54,6 +56,31 @@ func (p *Parser) parseStatement() ast.ASTNode {
 			p.eat()
 		}
 		return expr
+	}
+}
+
+func (p *Parser) parseFnReturn() ast.ASTNode {
+	p.eat() // Eat the `pop` keyword
+
+	// Pop statements need to complete with a semicolon or an expression
+
+	// Is the next token an expression
+	isNextExpr := p.at().TokenType == tokens.Identifier ||
+		p.at().TokenType == tokens.Number ||
+		p.at().TokenType == tokens.OpenParen
+
+	// Only allow pop <expr>; or pop;
+	if p.at().TokenType == tokens.Semicolon {
+		// No value, just pop (return);
+		p.eat() // Eat the semicolon
+		return ast.ReturnStatementNode{Value: nil}
+	} else if isNextExpr {
+		val := p.parseExpr()
+		p.eat() // Eat the semicolon
+		return ast.ReturnStatementNode{Value: val}
+	} else {
+		log.Fatalf("Expected an expression or semicolon after 'pop', got: %v", p.at())
+		return nil
 	}
 }
 

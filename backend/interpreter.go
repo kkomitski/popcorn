@@ -52,6 +52,10 @@ func evalCallExpression(node ast.CallExprNode, env *Environment) RuntimeVal {
 		var result RuntimeVal = Null
 		for _, stmt := range fn.Body {
 			result = Evaluate(stmt, scope)
+			// Check if a return statement was executed
+			if retVal, isReturn := result.(ReturnVal); isReturn {
+				return retVal.Value
+			}
 		}
 		return result
 	default:
@@ -131,6 +135,14 @@ func evalVarLookup(node ast.IdentifierExprNode, env *Environment) RuntimeVal {
 	return env.GetVar(node.Symbol)
 }
 
+func evalReturnStatement(node ast.ReturnStatementNode, env *Environment) RuntimeVal {
+	var value RuntimeVal = Null
+	if node.Value != nil {
+		value = Evaluate(node.Value, env)
+	}
+	return ReturnVal{Value: value}
+}
+
 func Evaluate(astNode ast.ASTNode, env *Environment) RuntimeVal {
 	switch node := astNode.(type) {
 	case ast.AssignmentExprNode:
@@ -145,6 +157,8 @@ func Evaluate(astNode ast.ASTNode, env *Environment) RuntimeVal {
 		return evalVarDeclaration(node, env)
 	case ast.FunctionDeclarationNode:
 		return evalFnDeclaration(node, env)
+	case ast.ReturnStatementNode:
+		return evalReturnStatement(node, env)
 	case ast.NumericLiteralExprNode:
 		return evalNumber(node, env)
 	case ast.BinaryExprNode:

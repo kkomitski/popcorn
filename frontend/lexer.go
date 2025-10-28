@@ -33,6 +33,7 @@ func Tokenize(sourceCode string) []tokens.Token {
 		"let":   tokens.Let,
 		"const": tokens.Const,
 		"fn":    tokens.Fn,
+		"pop":   tokens.Pop,
 	}
 
 	i := 0

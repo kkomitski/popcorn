@@ -13,6 +13,7 @@ const (
 	ObjectType
 	NativeFunctionType
 	FunctionType
+	ReturnType
 )
 
 type RuntimeVal any
@@ -33,6 +34,8 @@ func GetValType(val RuntimeVal) ValueType {
 		return NativeFunctionType
 	case FunctionVal, *FunctionVal:
 		return FunctionType
+	case ReturnVal, *ReturnVal:
+		return ReturnType
 	default:
 		return -1
 	}
@@ -65,4 +68,8 @@ type FunctionVal struct {
 	Params         []string
 	DeclarationEnv *Environment
 	Body           []ast.ASTNode
+}
+
+type ReturnVal struct {
+	Value RuntimeVal
 }
