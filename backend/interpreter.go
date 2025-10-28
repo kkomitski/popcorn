@@ -1,6 +1,7 @@
 package backend
 
 import (
+	"fmt"
 	"log"
 	"pop/frontend/types/ast"
 )
@@ -143,6 +144,74 @@ func evalReturnStatement(node ast.ReturnStatementNode, env *Environment) Runtime
 	return ReturnVal{Value: value}
 }
 
+func evalArray(node ast.ArrayLiteralExprNode, env *Environment) RuntimeVal {
+	// Pre-allocate slice with exact capacity needed
+	elements := make([]RuntimeVal, len(node.Elements))
+	
+	// Evaluate each element
+	for i, elem := range node.Elements {
+		elements[i] = Evaluate(elem, env)
+	}
+	
+	return ArrayVal{Elements: elements}
+}
+
+func evalMember(node ast.MemberExprNode, env *Environment) RuntimeVal {
+	object := Evaluate(node.Object, env)
+
+	// Computed access: obj[expr] or array[index]
+	if node.Computed {
+		property := Evaluate(node.Property, env)
+
+		// Array access
+		if arr, isArray := object.(ArrayVal); isArray {
+			index, isNum := property.(NumberVal)
+			if !isNum {
+				log.Fatalf("Array index must be a number, got: %+v", property)
+			}
+			idx := int(index.Value)
+			if idx < 0 || idx >= len(arr.Elements) {
+				log.Fatalf("Array index out of bounds: %d (length: %d)", idx, len(arr.Elements))
+			}
+			return arr.Elements[idx]
+		}
+
+		// Object computed access: obj[key]
+		if obj, isObj := object.(ObjectVal); isObj {
+			// Convert property to string key
+			var key string
+			if num, isNum := property.(NumberVal); isNum {
+				key = fmt.Sprintf("%v", num.Value)
+			} else {
+				log.Fatalf("Object key must be string or number, got: %+v", property)
+			}
+			if val, exists := obj.Properties[key]; exists {
+				return val
+			}
+			return Null
+		}
+
+		log.Fatalf("Cannot use computed access on non-object/array: %+v", object)
+	}
+
+	// Dot access: obj.property
+	if obj, isObj := object.(ObjectVal); isObj {
+		// Property should be an identifier
+		ident, ok := node.Property.(ast.IdentifierExprNode)
+		if !ok {
+			log.Fatalf("Property in dot notation must be identifier, got: %+v", node.Property)
+		}
+		if val, exists := obj.Properties[ident.Symbol]; exists {
+			return val
+		}
+		return Null
+	}
+
+	log.Fatalf("Cannot access property on non-object: %+v", object)
+	return Null
+}
+
+
 func Evaluate(astNode ast.ASTNode, env *Environment) RuntimeVal {
 	switch node := astNode.(type) {
 	case ast.AssignmentExprNode:
@@ -165,6 +234,10 @@ func Evaluate(astNode ast.ASTNode, env *Environment) RuntimeVal {
 		return evalBinaryOp(node, env)
 	case ast.IdentifierExprNode:
 		return evalVarLookup(node, env)
+	case ast.ArrayLiteralExprNode:
+		return evalArray(node, env)
+	case ast.MemberExprNode:
+		return evalMember(node, env)
 	default:
 		log.Fatalf("Node of type '%s' is not setup for evaluation.", node)
 	}

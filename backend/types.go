@@ -14,6 +14,7 @@ const (
 	NativeFunctionType
 	FunctionType
 	ReturnType
+	ArrayType
 )
 
 type RuntimeVal any
@@ -36,6 +37,8 @@ func GetValType(val RuntimeVal) ValueType {
 		return FunctionType
 	case ReturnVal, *ReturnVal:
 		return ReturnType
+	case ArrayVal, *ArrayVal:
+		return ArrayType
 	default:
 		return -1
 	}
@@ -72,4 +75,8 @@ type FunctionVal struct {
 
 type ReturnVal struct {
 	Value RuntimeVal
+}
+
+type ArrayVal struct {
+	Elements []RuntimeVal
 }

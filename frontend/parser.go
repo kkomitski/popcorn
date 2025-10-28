@@ -357,6 +357,56 @@ func (p *Parser) parsePrimaryExpr() ast.ASTNode {
 		value := p.parseExpr()
 		p.expect(tokens.CloseParen, "Unexpected token found inside parenthesised expression. Expected closing parenthesis.")
 		return value
+	case tokens.OpenBracket:
+		p.eat() // Eat the opening bracket
+		
+		// Look-ahead to count elements for optimal pre-allocation
+		elementCount := 0
+		if p.at().TokenType != tokens.CloseBracket {
+			tempPos := p.Pos
+			depth := 0
+			for tempPos < len(p.Tokens) {
+				tk := p.Tokens[tempPos]
+				if tk.TokenType == tokens.OpenBracket {
+					depth++
+				} else if tk.TokenType == tokens.CloseBracket {
+					if depth == 0 {
+						break
+					}
+					depth--
+				} else if tk.TokenType == tokens.Comma && depth == 0 {
+					elementCount++
+				}
+				tempPos++
+			}
+			elementCount++ // Add 1 for the last element (no trailing comma)
+		}
+		
+		// Pre-allocate with exact capacity
+		elements := make([]ast.ASTNode, 0, elementCount)
+
+		if p.at().TokenType != tokens.CloseBracket {
+			for {
+				elements = append(elements, p.parseExpr())
+				if p.at().TokenType == tokens.CloseBracket {
+					break
+				}
+				// Require a comma between elements
+				p.expect(tokens.Comma, "Array elements should be separated with commas.")
+				// Check for trailing comma (optional)
+				if p.at().TokenType == tokens.CloseBracket {
+					break
+				}
+			}
+		}
+
+		p.expect(tokens.CloseBracket, "Expected closing bracket for array literal.")
+		return ast.ArrayLiteralExprNode{
+			Elements: elements,
+			Size:     int64(len(elements)),
+		}
+	case tokens.OpenBrace:
+		return p.parseObjectExpr()
 	default:
 		log.Fatalf("Unexpected token found during parsing: %v", p.at())
 		return nil

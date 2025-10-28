@@ -353,6 +353,7 @@ type NullLiteralExprNode struct{}
 type ArrayLiteralExprNode struct {
 	// Elements contains all expressions in the array
 	Elements []ASTNode
+	Size int64
 }
 
 // PropertyNode represents a key-value pair property inside an object literal in the AST.
