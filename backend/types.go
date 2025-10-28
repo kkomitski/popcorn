@@ -9,6 +9,7 @@ type ValueType = int
 const (
 	NullType = iota
 	NumberType
+	StringType
 	BooleanType
 	ObjectType
 	NativeFunctionType
@@ -79,4 +80,8 @@ type ReturnVal struct {
 
 type ArrayVal struct {
 	Elements []RuntimeVal
+}
+
+type StringVal struct {
+	Value string
 }

@@ -407,6 +407,16 @@ func (p *Parser) parsePrimaryExpr() ast.ASTNode {
 		}
 	case tokens.OpenBrace:
 		return p.parseObjectExpr()
+	case tokens.Quotes:
+		p.eat(); // Eat the opening quote
+
+		val := p.eat().Value
+
+		p.expect(tokens.Quotes, "String literals should end with a closing quote.")
+		return ast.StringLiteralExprNode{
+			Value: val,
+		}
+	
 	default:
 		log.Fatalf("Unexpected token found during parsing: %v", p.at())
 		return nil

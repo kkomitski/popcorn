@@ -27,6 +27,7 @@ func Tokenize(sourceCode string) []tokens.Token {
 		':': tokens.Colon,
 		',': tokens.Comma,
 		'.': tokens.Dot,
+		'"': tokens.Quotes,
 	}
 
 	keywords := map[string]tokens.TokenType{

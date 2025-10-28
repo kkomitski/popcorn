@@ -27,6 +27,8 @@ const (
 	CloseBracket // ]
 	BinaryOperator
 
+	Quotes 			 // "
+
 	// End of File
 	EOF
 )

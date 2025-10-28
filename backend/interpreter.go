@@ -103,6 +103,12 @@ func evalNumber(node ast.NumericLiteralExprNode, env *Environment) RuntimeVal {
 	return NumberVal{Value: node.Value}
 }
 
+func evalString(node ast.StringLiteralExprNode, env *Environment) RuntimeVal {
+	return StringVal{
+		Value: node.Value,
+	}
+}
+
 func evalBinaryOp(node ast.BinaryExprNode, env *Environment) RuntimeVal {
 	left := Evaluate(node.Left, env)
 	right := Evaluate(node.Right, env)
@@ -211,7 +217,6 @@ func evalMember(node ast.MemberExprNode, env *Environment) RuntimeVal {
 	return Null
 }
 
-
 func Evaluate(astNode ast.ASTNode, env *Environment) RuntimeVal {
 	switch node := astNode.(type) {
 	case ast.AssignmentExprNode:
@@ -238,6 +243,8 @@ func Evaluate(astNode ast.ASTNode, env *Environment) RuntimeVal {
 		return evalArray(node, env)
 	case ast.MemberExprNode:
 		return evalMember(node, env)
+	case ast.StringLiteralExprNode:
+		return evalString(node, env)
 	default:
 		log.Fatalf("Node of type '%s' is not setup for evaluation.", node)
 	}
