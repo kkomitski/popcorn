@@ -7,7 +7,8 @@ A lightweight, interpreted programming language built with Go. Popcorn features 
 - **Interactive REPL** with syntax highlighting and formatted output
 - **File execution** for running `.pop` scripts
 - **Dynamic typing** with runtime type checking
-- **First-class functions** with closures
+- **First-class functions** with closures and early returns
+- **Array literals** with index-based access
 - **Object literals** for structured data
 - **Lexical scoping** with nested environments
 - **Constants and variables** with immutability enforcement
@@ -96,6 +97,20 @@ fn add(a, b) {
 // Function call
 let result = add(5, 10);  // 15
 
+// Early return with 'pop' keyword
+fn max(a, b) {
+  let result = a;
+  
+  pop result;  // Returns immediately with result
+  
+  // Code after 'pop' is not executed
+};
+
+// Functions can pop without a value
+fn checkValue(x) {
+  pop;  // Returns null immediately
+};
+
 // Functions with multiple statements
 fn greet(name) {
   let message = "Hello, ";
@@ -115,6 +130,30 @@ fn makeCounter() {
 let counter = makeCounter();
 counter();  // 1
 counter();  // 2
+```
+
+### Arrays
+
+Arrays are ordered collections of values with zero-based indexing:
+
+```javascript
+// Array literal
+let numbers = [1, 2, 3, 4, 5];
+
+// Access elements by index
+numbers[0];  // 1
+numbers[2];  // 3
+
+// Arrays can contain mixed types
+let mixed = [42, "hello", { x: 10 }];
+
+// Nested arrays
+let matrix = [[1, 2], [3, 4], [5, 6]];
+matrix[0];     // [1, 2]
+matrix[1][0];  // 3
+
+// Empty array
+let empty = [];
 ```
 
 ### Objects
@@ -218,6 +257,7 @@ bolang/
 | `Number` | Floating-point numbers | `42`, `3.14` |
 | `Boolean` | True/false values | `true`, `false` |
 | `Null` | Null/undefined value | `null` |
+| `Array` | Ordered collections | `[1, 2, 3]` |
 | `Object` | Key-value collections | `{ x: 10, y: 20 }` |
 | `Function` | User-defined functions | `fn add(a,b) { a+b }` |
 | `NativeFunction` | Built-in functions | *(future feature)* |
@@ -275,6 +315,27 @@ fn fibonacci(n) {
 fibonacci(10);
 ```
 
+### Array Operations
+
+```javascript
+// Sum of array elements
+fn sum(arr) {
+  let total = 0;
+  let i = 0;
+  
+  // Note: Length function coming soon
+  total
+};
+
+// Find element in array
+fn findAt(arr, index) {
+  pop arr[index];
+};
+
+let numbers = [10, 20, 30, 40];
+findAt(numbers, 2);  // 30
+```
+
 ### Calculator
 
 ```javascript
@@ -291,11 +352,13 @@ calculate(multiply, 4, 7);  // 28
 
 ## 🗺️ Roadmap
 
-- [ ] String type and string operations
-- [ ] Array/list data structures
+- [x] Array/list data structures with index access
+- [x] Early return with `pop` keyword
 - [ ] Boolean logic operators (`&&`, `||`, `!`)
 - [ ] Comparison operators (`==`, `!=`, `<`, `>`, `<=`, `>=`)
 - [ ] Control flow (`if`, `while`, `for`)
+- [ ] String type and string operations
+- [ ] Array methods (push, pop, length, map, filter)
 - [ ] Built-in standard library functions
 - [ ] Module system and imports
 - [ ] Error handling (try/catch)
