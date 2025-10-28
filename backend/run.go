@@ -18,27 +18,14 @@ func RunFile(filePath string) error {
 
 	// Tokenize and parse
 	tokens := FE.Tokenize(string(content))
-	
-	// Debug: Print tokens
-	fmt.Println("=== TOKENS ===")
-	for i, token := range tokens {
-		fmt.Printf("%d: %+v\n", i, token)
-	}
-	fmt.Println()
-	
 	ast := FE.ProduceAST(tokens)
-
-	// Debug: Print AST
-	fmt.Println("=== AST ===")
-	fmt.Printf("%+v\n", ast)
-	fmt.Println()
 
 	// Create environment and evaluate
 	env := MakeEnvironment()
 	result := Evaluate(ast, env)
 
 	// Print the final result
-	fmt.Printf("=== RESULT ===\n%+v\n", result)
+	fmt.Printf("%+v\n", result)
 
 	return nil
 }
