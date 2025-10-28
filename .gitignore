@@ -64,3 +64,6 @@ coverage.txt
 coverage.html
 *.cover
 *.coverprofile
+
+extension/node_modules*
+extension/out

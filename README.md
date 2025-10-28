@@ -15,6 +15,7 @@ A lightweight, interpreted programming language built with Go. Popcorn features 
 
 ## 🚀 Quick Start
 
+
 ### Installation
 
 Run the install script to build and install Popcorn:
@@ -33,6 +34,20 @@ After installation, restart your terminal or run:
 ```bash
 source ~/.zshrc
 ```
+
+### VS Code Extension (Syntax Highlighting & Theme)
+
+To install the Popcorn syntax highlighting and theme extension in VS Code:
+
+```bash
+./install-extension.sh
+```
+
+This will:
+- Compile the extension
+- Add it to your VS Code extensions folder via symlink
+
+After running, restart VS Code. Open a `.pop` file and select the "Popcorn Butter" theme for the full experience!
 
 ### Running Popcorn
 

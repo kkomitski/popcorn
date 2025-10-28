@@ -1,0 +1,48 @@
+{
+  "name": "popcorn-highlight",
+  "displayName": "Popcorn Syntax Highlighting",
+  "description": "Syntax highlighting for the Popcorn programming language",
+  "version": "0.0.1",
+  "engines": {
+    "vscode": "^1.80.0"
+  },
+  "categories": [
+    "Programming Languages"
+  ],
+  "main": "./out/popcorn-highlight.js",
+  "contributes": {
+    "languages": [
+      {
+        "id": "popcorn",
+        "aliases": ["Popcorn", "popcorn"],
+        "extensions": [".pop"],
+        "configuration": "./language-configuration.json"
+      }
+    ],
+    "grammars": [
+      {
+        "language": "popcorn",
+        "scopeName": "source.popcorn",
+        "path": "./syntaxes/popcorn.tmLanguage.json"
+      }
+    ],
+    "themes": [
+      {
+        "label": "Popcorn Butter",
+        "uiTheme": "vs-dark",
+        "path": "./themes/popcorn-butter.json",
+        "default": true
+      }
+    ]
+  },
+  "scripts": {
+    "vscode:prepublish": "npm run compile",
+    "compile": "tsc -p ./",
+    "watch": "tsc -watch -p ./"
+  },
+  "devDependencies": {
+    "@types/node": "^18.0.0",
+    "@types/vscode": "^1.80.0",
+    "typescript": "^5.0.0"
+  }
+}
