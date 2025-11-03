@@ -11,25 +11,26 @@ func Tokenize(sourceCode string) []tokens.Token {
 	tokensList := make([]tokens.Token, 0, len(chars))
 
 	singleCharTokens := map[rune]tokens.TokenType{
-		'+': tokens.BinaryOperator,
-		'-': tokens.BinaryOperator,
-		'/': tokens.BinaryOperator,
-		'*': tokens.BinaryOperator,
-		'%': tokens.BinaryOperator,
-		'(': tokens.OpenParen,
-		')': tokens.CloseParen,
-		'{': tokens.OpenBrace,
-		'}': tokens.CloseBrace,
-		'[': tokens.OpenBracket,
-		']': tokens.CloseBracket,
-		'=': tokens.Equals,
-		';': tokens.Semicolon,
-		':': tokens.Colon,
-		',': tokens.Comma,
-		'.': tokens.Dot,
-		'"': tokens.Quotes,
-		'<': tokens.Less,
-		'>': tokens.Greater,
+		'+':  tokens.BinaryOperator,
+		'-':  tokens.BinaryOperator,
+		'/':  tokens.BinaryOperator,
+		'*':  tokens.BinaryOperator,
+		'%':  tokens.BinaryOperator,
+		'(':  tokens.OpenParen,
+		')':  tokens.CloseParen,
+		'{':  tokens.OpenBrace,
+		'}':  tokens.CloseBrace,
+		'[':  tokens.OpenBracket,
+		']':  tokens.CloseBracket,
+		'=':  tokens.Equals,
+		';':  tokens.Semicolon,
+		':':  tokens.Colon,
+		',':  tokens.Comma,
+		'.':  tokens.Dot,
+		'"':  tokens.Quotes,
+		'<':  tokens.Less,
+		'>':  tokens.Greater,
+		'\n': tokens.NewLine,
 	}
 
 	keywords := map[string]tokens.TokenType{
@@ -49,6 +50,16 @@ func Tokenize(sourceCode string) []tokens.Token {
 	i := 0
 	for i < len(chars) {
 		c := chars[i]
+
+		if i+1 < len(chars) && utils.IsComment(string(c)+string(chars[i+1])) {
+			// Skip the entire comment
+			for i < len(chars) && chars[i] != '\n' {
+				i++
+			}
+			// Skip the newline as well
+			// i++
+			continue
+		}
 
 		if i+1 < len(chars) && utils.IsComparer(string(c)+string(chars[i+1])) {
 			comparer := string(c) + string(chars[i+1])

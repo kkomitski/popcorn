@@ -1,5 +1,10 @@
-const foo = "1" == "1";
+// We have comments now
+const x = 3;
+
+
 
 fn add(a, b) {
   pop a + b
 }
+
+add(x, 3)

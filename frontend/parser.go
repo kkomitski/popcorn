@@ -21,6 +21,7 @@ func (p *Parser) notEOF() bool {
 func (p *Parser) eat() tokens.Token {
 	curr := p.Tokens[p.Pos]
 	p.Pos++
+
 	return curr
 }
 
@@ -39,6 +40,12 @@ func (p *Parser) expect(tokenType tokens.TokenType, err string) tokens.Token {
 	return prev
 }
 
+func (p *Parser) skipNewlines() {
+	for p.at().TokenType == tokens.NewLine {
+		p.eat()
+	}
+}
+
 // * ======== STATEMENTS ======== * \\
 
 func (p *Parser) parseStatement() ast.ASTNode {
@@ -50,12 +57,7 @@ func (p *Parser) parseStatement() ast.ASTNode {
 	case tokens.Pop:
 		return p.parseFnReturn()
 	default:
-		expr := p.parseExpr()
-		// Eat the extra semicolon at the end of expression statements
-		if p.at().TokenType == tokens.Semicolon {
-			p.eat()
-		}
-		return expr
+		return p.parseExpr()
 	}
 }
 
@@ -69,17 +71,17 @@ func (p *Parser) parseFnReturn() ast.ASTNode {
 		p.at().TokenType == tokens.Number ||
 		p.at().TokenType == tokens.OpenParen
 
-	// Only allow pop <expr>; or pop;
-	if p.at().TokenType == tokens.Semicolon {
-		// No value, just pop (return);
-		p.eat() // Eat the semicolon
-		return ast.ReturnStatementNode{Value: nil}
-	} else if isNextExpr {
+	// Is the next token an expression?
+	if isNextExpr {
 		val := p.parseExpr()
-		p.eat() // Eat the semicolon
+		// Optionally: check for newline, block end, or EOF here
 		return ast.ReturnStatementNode{Value: val}
+	} else if p.at().TokenType == tokens.CloseBrace ||
+		p.at().TokenType == tokens.EOF {
+		// No value, just pop (return)
+		return ast.ReturnStatementNode{Value: nil}
 	} else {
-		log.Fatalf("Expected an expression or semicolon after 'pop', got: %v", p.at())
+		log.Fatalf("Expected an expression or end of statement after 'pop', got: %v", p.at())
 		return nil
 	}
 }
@@ -133,16 +135,20 @@ func (p *Parser) parseFnDeclaration() ast.ASTNode {
 
 	body := []ast.ASTNode{}
 
-	for p.notEOF() && p.at().TokenType != tokens.CloseBrace {
+	for p.notEOF() {
+		p.skipNewlines()
+		if p.at().TokenType == tokens.CloseBrace {
+			break
+		}
 		body = append(body, p.parseStatement())
 	}
 
 	p.expect(tokens.CloseBrace, "Closing bracket expected inside function declaration")
 
 	// Consume trailing semicolon
-	if p.at().TokenType == tokens.Semicolon {
-		p.eat()
-	}
+	// if p.at().TokenType == tokens.Semicolon {
+	// 	p.eat()
+	// }
 
 	return ast.FunctionDeclarationNode{
 		Name:   name,
@@ -457,6 +463,8 @@ func ProduceAST(tokens []tokens.Token) ast.Program {
 	}
 
 	for parser.notEOF() {
+		parser.skipNewlines()
+
 		program.Body = append(program.Body, parser.parseStatement())
 	}
 
