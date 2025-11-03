@@ -9,7 +9,7 @@ func IsAlphabetical(ch rune) bool {
 }
 
 func IsSkippable(ch rune) bool {
-	return ch == ' ' || ch == '\n' || ch == '\t' || ch == '\r'
+	return ch == ' ' || ch == '\t' || ch == '\r'
 }
 
 func Min(a, b int) int {
@@ -21,4 +21,8 @@ func Min(a, b int) int {
 
 func IsComparer(s string) bool {
 	return s == "==" || s == "!=" || s == "<=" || s == ">="
+}
+
+func IsComment(s string ) bool {
+	return s == "//"
 }

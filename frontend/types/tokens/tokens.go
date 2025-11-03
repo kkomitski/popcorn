@@ -25,6 +25,7 @@ const (
 	CloseBrace   // }
 	OpenBracket  // [
 	CloseBracket // ]
+	NewLine      // \n
 	BinaryOperator
 
 	// Strings
