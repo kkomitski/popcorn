@@ -91,7 +91,7 @@ func (p *Parser) parseVarDeclaration() ast.ASTNode {
 
 	identifier := p.expect(tokens.Identifier, "Expected identifier name following 'let' | 'const' keywords").Value
 
-	if p.at().TokenType == tokens.Semicolon {
+	if p.at().TokenType == tokens.NewLine {
 		p.eat()
 		if isConstant {
 			log.Fatalf("Must assign value to constant expression. No value provided.")
@@ -110,7 +110,7 @@ func (p *Parser) parseVarDeclaration() ast.ASTNode {
 		Value:      p.parseExpr(),
 	}
 
-	p.expect(tokens.Semicolon, "Variable declaration statement must end with semicolon")
+	p.expect(tokens.NewLine, "Variable declaration statement must end with a new line")
 
 	return declaration
 }
