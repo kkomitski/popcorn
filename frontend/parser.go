@@ -57,7 +57,15 @@ func (p *Parser) parseStatement() ast.ASTNode {
 	case tokens.Pop:
 		return p.parseFnReturn()
 	default:
-		return p.parseExpr()
+		node := p.parseExpr()
+
+		if p.at().TokenType == tokens.NewLine {
+			p.eat()
+		} else if p.at().TokenType != tokens.EOF {
+			log.Fatalf("Expected newline or EOF after statement, got: %v", p.at())
+		}
+
+		return node
 	}
 }
 
