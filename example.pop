@@ -1,3 +1,4 @@
-let foo
+const foo = true
+const bar = true
 
-foo = 32
+foo == bar

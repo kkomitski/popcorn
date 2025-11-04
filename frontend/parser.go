@@ -1,6 +1,7 @@
 package frontend
 
 import (
+	"fmt"
 	"log"
 	"pop/frontend/types/ast"
 	"pop/frontend/types/tokens"
@@ -153,10 +154,10 @@ func (p *Parser) parseFnDeclaration() ast.ASTNode {
 
 	p.expect(tokens.CloseBrace, "Closing bracket expected inside function declaration")
 
-	// Consume trailing semicolon
-	// if p.at().TokenType == tokens.Semicolon {
-	// 	p.eat()
-	// }
+	// Consume trailing newLine
+	if p.at().TokenType == tokens.NewLine {
+		p.eat()
+	}
 
 	return ast.FunctionDeclarationNode{
 		Name:   name,
@@ -450,6 +451,20 @@ func (p *Parser) parsePrimaryExpr() ast.ASTNode {
 		p.expect(tokens.Quotes, "String literals should end with a closing quote.")
 		return ast.StringLiteralExprNode{
 			Value: val,
+		}
+	case tokens.True, tokens.False:
+		val := p.eat().Value
+
+		fmt.Println(val)
+
+		if val == "true" {
+			return ast.BooleanLiteralExprNode{
+				Value: true,
+			}
+		}
+
+		return ast.BooleanLiteralExprNode{
+			Value: false,
 		}
 
 	default:
