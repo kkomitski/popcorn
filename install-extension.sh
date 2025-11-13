@@ -15,6 +15,7 @@ npm install
 echo "🔨 Compiling TypeScript..."
 npm run compile
 
+
 # Create symlink in VS Code extensions directory
 EXTENSION_DIR="$HOME/.vscode/extensions/popcorn-highlight"
 

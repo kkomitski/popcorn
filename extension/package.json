@@ -14,8 +14,13 @@
     "languages": [
       {
         "id": "popcorn",
-        "aliases": ["Popcorn", "popcorn"],
-        "extensions": [".pop"],
+        "aliases": [
+          "Popcorn",
+          "popcorn"
+        ],
+        "extensions": [
+          ".pop"
+        ],
         "configuration": "./language-configuration.json"
       }
     ],
@@ -44,5 +49,8 @@
     "@types/node": "^18.0.0",
     "@types/vscode": "^1.80.0",
     "typescript": "^5.0.0"
+  },
+  "dependencies": {
+    "vscode": "^1.1.37"
   }
 }
