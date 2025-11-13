@@ -39,6 +39,11 @@ const (
 	LessEqual    // <=
 	GreaterEqual // >=
 
+	// Booleans/null
+	Null
+	True
+	False
+
 	// End of File
 	EOF
 )

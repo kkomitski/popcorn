@@ -1,6 +1,7 @@
 package frontend
 
 import (
+	"fmt"
 	"log"
 	"pop/frontend/types/ast"
 	"pop/frontend/types/tokens"
@@ -57,7 +58,15 @@ func (p *Parser) parseStatement() ast.ASTNode {
 	case tokens.Pop:
 		return p.parseFnReturn()
 	default:
-		return p.parseExpr()
+		node := p.parseExpr()
+
+		if p.at().TokenType == tokens.NewLine {
+			p.eat()
+		} else if p.at().TokenType != tokens.EOF {
+			log.Fatalf("Expected newline or EOF after statement, got: %v", p.at())
+		}
+
+		return node
 	}
 }
 
@@ -91,7 +100,7 @@ func (p *Parser) parseVarDeclaration() ast.ASTNode {
 
 	identifier := p.expect(tokens.Identifier, "Expected identifier name following 'let' | 'const' keywords").Value
 
-	if p.at().TokenType == tokens.Semicolon {
+	if p.at().TokenType == tokens.NewLine {
 		p.eat()
 		if isConstant {
 			log.Fatalf("Must assign value to constant expression. No value provided.")
@@ -110,7 +119,7 @@ func (p *Parser) parseVarDeclaration() ast.ASTNode {
 		Value:      p.parseExpr(),
 	}
 
-	p.expect(tokens.Semicolon, "Variable declaration statement must end with semicolon")
+	p.expect(tokens.NewLine, "Variable declaration statement must end with a new line")
 
 	return declaration
 }
@@ -145,10 +154,10 @@ func (p *Parser) parseFnDeclaration() ast.ASTNode {
 
 	p.expect(tokens.CloseBrace, "Closing bracket expected inside function declaration")
 
-	// Consume trailing semicolon
-	// if p.at().TokenType == tokens.Semicolon {
-	// 	p.eat()
-	// }
+	// Consume trailing newLine
+	if p.at().TokenType == tokens.NewLine {
+		p.eat()
+	}
 
 	return ast.FunctionDeclarationNode{
 		Name:   name,
@@ -442,6 +451,20 @@ func (p *Parser) parsePrimaryExpr() ast.ASTNode {
 		p.expect(tokens.Quotes, "String literals should end with a closing quote.")
 		return ast.StringLiteralExprNode{
 			Value: val,
+		}
+	case tokens.True, tokens.False:
+		val := p.eat().Value
+
+		fmt.Println(val)
+
+		if val == "true" {
+			return ast.BooleanLiteralExprNode{
+				Value: true,
+			}
+		}
+
+		return ast.BooleanLiteralExprNode{
+			Value: false,
 		}
 
 	default:

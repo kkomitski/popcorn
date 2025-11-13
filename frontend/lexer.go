@@ -38,6 +38,9 @@ func Tokenize(sourceCode string) []tokens.Token {
 		"const": tokens.Const,
 		"fn":    tokens.Fn,
 		"pop":   tokens.Pop,
+		"true":  tokens.True,
+		"false": tokens.False,
+		"null":  tokens.Null,
 	}
 
 	comparers := map[string]tokens.TokenType{

@@ -1,0 +1,32 @@
+// Literals
+123
+identifier
+"string"
+
+// Keywords
+let x = 1
+const y = 2
+fn add(a, b) { pop a + b }
+pop x
+
+// Grouping & Operators
+x = (1 + 2) * [3, 4] / { a: 5 }
+x, y
+obj.prop
+arr[0]
+{ }
+[ ]
+( )
+
+// Comparison operators
+a == b
+a != b
+a < b
+a > b
+a <= b
+a >= b
+
+// Boolean and null
+true
+false
+null

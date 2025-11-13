@@ -1,10 +1,4 @@
-// We have comments now
-const x = 3;
+const foo = true
+const bar = true
 
-
-
-fn add(a, b) {
-  pop a + b
-}
-
-add(x, 3)
+foo == bar

@@ -3,19 +3,24 @@
   "displayName": "Popcorn Syntax Highlighting",
   "description": "Syntax highlighting for the Popcorn programming language",
   "version": "0.0.1",
+  "publisher": "popcorn",
   "engines": {
     "vscode": "^1.80.0"
   },
   "categories": [
     "Programming Languages"
   ],
-  "main": "./out/popcorn-highlight.js",
   "contributes": {
     "languages": [
       {
         "id": "popcorn",
-        "aliases": ["Popcorn", "popcorn"],
-        "extensions": [".pop"],
+        "aliases": [
+          "Popcorn",
+          "popcorn"
+        ],
+        "extensions": [
+          ".pop"
+        ],
         "configuration": "./language-configuration.json"
       }
     ],
@@ -43,6 +48,7 @@
   "devDependencies": {
     "@types/node": "^18.0.0",
     "@types/vscode": "^1.80.0",
-    "typescript": "^5.0.0"
+    "typescript": "^5.0.0",
+    "vscode": "^1.1.37"
   }
 }

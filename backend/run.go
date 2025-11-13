@@ -127,6 +127,11 @@ func Repl() RuntimeVal {
 			continue
 		}
 
+		// Add a newline so the REPL doesn't throw "VariableDeclarations must end with a newline error"
+		if !strings.HasSuffix(line, "\n") {
+			line += "\n"
+		}
+
 		// Show syntax highlighted version
 		highlighted := highlightSyntax(line)
 		fmt.Printf("   \033[2m→\033[0m %s\n", highlighted)
