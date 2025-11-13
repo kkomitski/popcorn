@@ -10,7 +10,6 @@ import (
 const PARSER_FILE = "../mocks/parser-mock.pop"
 
 func TestParser(t *testing.T) {
-	return
 	content, err := os.ReadFile(PARSER_FILE)
 	if err != nil {
 		t.Fatalf("Failed to read file %v", err)

@@ -1,0 +1,52 @@
+// Test 1: Variable declaration with let
+let x = 42
+
+// Test 2: Variable declaration with const
+const y = 100
+
+// Test 3: Binary expression (addition)
+let sum = 10 + 20
+
+// Test 4: Binary expression (multiplication)
+let product = 5 * 6
+
+// Test 5: Comparison expression (less than)
+let isLess = 5 < 10
+
+// Test 6: Assignment expression
+x = 50
+
+// Test 7: Function declaration
+fn add(a, b) {
+	pop a + b
+}
+
+// Test 8: Function call
+let result = add(3, 7)
+
+// Test 9: String literal
+let greeting = "hello"
+
+// Test 10: Array literal
+let numbers = [1, 2, 3, 4, 5]
+
+// Test 11: Object literal
+let person = { name: "John", age: 30 }
+
+// Test 12: Member expression (dot notation)
+let personName = person.name
+
+// Test 13: Member expression (bracket notation)
+let firstNumber = numbers[0]
+
+// Test 14: Comparison operators (==)
+let isEqual = 10 == 10
+
+// Test 15: Comparison operators (!=)
+let isNotEqual = 5 != 10
+
+// Test 16: Comparison operators (<)
+let isLessThan = 3 < 5
+
+// Test 17: Comparison operators (>)
+let isGreaterThan = 10 > 5
