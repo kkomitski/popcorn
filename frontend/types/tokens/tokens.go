@@ -29,7 +29,7 @@ const (
 	BinaryOperator
 
 	// Strings
-	Quotes 			 // "
+	Quotes // "
 
 	// Comparison operators
 	Equal        // ==
@@ -38,6 +38,11 @@ const (
 	Greater      // >
 	LessEqual    // <=
 	GreaterEqual // >=
+
+	// Logical operators
+	And // &&
+	Or  // ||
+	Not // !
 
 	// Booleans/null
 	Null

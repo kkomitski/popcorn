@@ -50,6 +50,11 @@ func Tokenize(sourceCode string) []tokens.Token {
 		">=": tokens.GreaterEqual,
 	}
 
+	logical := map[string]tokens.TokenType{
+		"&&": tokens.And,
+		"||": tokens.Or,
+	}
+
 	i := 0
 	for i < len(chars) {
 		c := chars[i]
@@ -64,14 +69,21 @@ func Tokenize(sourceCode string) []tokens.Token {
 			continue
 		}
 
-		if i+1 < len(chars) && utils.IsComparer(string(c)+string(chars[i+1])) {
-			comparer := string(c) + string(chars[i+1])
+		if i+1 < len(chars) &&
+			(utils.IsComparer(string(c)+string(chars[i+1])) || utils.IsLogical(string(c)+string(chars[i+1]))) {
+			twoChars := string(c) + string(chars[i+1])
 
-			tokenType, _ := comparers[comparer]
-			tokensList = append(tokensList, tokens.Token{Value: string(c) + string(chars[i+1]), TokenType: tokenType})
-
-			i++
-			i++
+			if tokenType, ok := comparers[twoChars]; ok {
+				// If the token type is found in the comparers map
+				tokensList = append(tokensList, tokens.Token{Value: twoChars, TokenType: tokenType})
+				i += 2
+				continue
+			} else if tokenType, ok := logical[twoChars]; ok {
+				// If the token type is found in the logical map
+				tokensList = append(tokensList, tokens.Token{Value: twoChars, TokenType: tokenType})
+				i += 2
+				continue
+			}
 		} else if tokenType, ok := singleCharTokens[c]; ok {
 			tokensList = append(tokensList, tokens.Token{Value: string(c), TokenType: tokenType})
 			i++

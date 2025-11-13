@@ -23,6 +23,10 @@ func IsComparer(s string) bool {
 	return s == "==" || s == "!=" || s == "<=" || s == ">="
 }
 
+func IsLogical(s string) bool {
+	return s == "&&" || s == "||"
+}
+
 func IsComment(s string ) bool {
 	return s == "//"
 }

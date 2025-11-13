@@ -151,6 +151,18 @@ func TestLexer(t *testing.T) {
 		// Blank line
 		{Value: "\n", TokenType: tokens.NewLine},
 
+		// "// Logical operators" comment
+		{Value: "\n", TokenType: tokens.NewLine},
+
+		// Logical operators
+		{Value: "&&", TokenType: tokens.And},
+		{Value: "\n", TokenType: tokens.NewLine},
+		{Value: "||", TokenType: tokens.Or},
+		{Value: "\n", TokenType: tokens.NewLine},
+
+		// Blank line
+		{Value: "\n", TokenType: tokens.NewLine},
+
 		// "// Boolean and null" comment
 		{Value: "\n", TokenType: tokens.NewLine},
 

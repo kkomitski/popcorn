@@ -26,6 +26,10 @@ a > b
 a <= b
 a >= b
 
+// Logical operators
+&&
+||
+
 // Boolean and null
 true
 false
