@@ -110,14 +110,39 @@ func evalString(node ast.StringLiteralExprNode, env *Environment) RuntimeVal {
 }
 
 func evalBool(node ast.BooleanLiteralExprNode, env *Environment) RuntimeVal {
-	if node.Value {
-		return StringVal{
-			Value: "true",
+	return BoolValue{Value: node.Value}
+}
+
+func evalLogicalExpr(node ast.LogicalExprNode, env *Environment) RuntimeVal {
+	left := Evaluate(node.Left, env)
+	leftBool, isLeftBool := left.(BoolValue)
+
+	if !isLeftBool {
+		log.Fatalf("Logical operators require boolean operands, got: %v", left)
+	}
+
+	// Short-circuit evaluation
+	if node.Operator == "&&" {
+		if !leftBool.Value {
+			return BoolValue{Value: false}
+		}
+	} else if node.Operator == "||" {
+		if leftBool.Value {
+			return BoolValue{Value: true}
 		}
 	}
 
-	return StringVal{
-		Value: "false",
+	right := Evaluate(node.Right, env)
+	rightBool, isRightBool := right.(BoolValue)
+
+	if !isRightBool {
+		log.Fatalf("Logical operators require boolean operands, got: %v", right)
+	}
+
+	if node.Operator == "&&" {
+		return BoolValue{Value: rightBool.Value}
+	} else {
+		return BoolValue{Value: rightBool.Value}
 	}
 }
 
@@ -211,6 +236,20 @@ func evalBinaryOp(node ast.BinaryExprNode, env *Environment) RuntimeVal {
 		case ">=":
 			return BoolValue{Value: leftNum.Value >= rightNum.Value}
 		}
+	// case "&&", "||":
+	// 	leftVal, isLeftBool := left.(BoolValue)
+	// 	rightVal, isRightBool := right.(BoolValue)
+
+	// 	if !isLeftBool || !isRightBool {
+	// 		log.Fatalf("Logical operators require boolean operands: %v, %v", left, right)
+	// 	}
+
+	// 	switch node.Operator {
+	// 	case "&&":
+	// 		return BoolValue{Value: leftVal.Value && rightVal.Value}
+	// 	case "||":
+	// 		return BoolValue{Value: leftVal.Value || rightVal.Value}
+	// 	}
 	default:
 		log.Fatalf("Unknown binary operator: %s", node.Operator)
 	}
@@ -326,6 +365,8 @@ func Evaluate(astNode ast.ASTNode, env *Environment) RuntimeVal {
 		return evalString(node, env)
 	case ast.BooleanLiteralExprNode:
 		return evalBool(node, env)
+	case ast.LogicalExprNode:
+		return evalLogicalExpr(node, env)
 	default:
 		log.Fatalf("Node of type '%s' is not setup for evaluation.", node)
 	}

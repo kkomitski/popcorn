@@ -101,6 +101,8 @@ const (
 	GreaterThan        BinaryOperatorKind = ">"
 	LessThanOrEqual    BinaryOperatorKind = "<="
 	GreaterThanOrEqual BinaryOperatorKind = ">="
+	And                BinaryOperatorKind = "&&"
+	Or                 BinaryOperatorKind = "||"
 )
 
 // ASTNode can be any AST node type
@@ -353,7 +355,7 @@ type NullLiteralExprNode struct{}
 type ArrayLiteralExprNode struct {
 	// Elements contains all expressions in the array
 	Elements []ASTNode
-	Size int64
+	Size     int64
 }
 
 // PropertyNode represents a key-value pair property inside an object literal in the AST.
@@ -389,7 +391,7 @@ type LogicalExprNode struct {
 	// Right is the right-hand operand
 	Right ASTNode
 	// Operator specifies the logical operation ("&&" or "||")
-	Operator string
+	Operator BinaryOperatorKind
 }
 
 // ConditionalExprNode represents a ternary conditional expression in the AST.

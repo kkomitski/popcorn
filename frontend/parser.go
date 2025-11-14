@@ -173,7 +173,7 @@ func (p *Parser) parseExpr() ast.ASTNode {
 }
 
 func (p *Parser) parseAssignmentExpr() ast.ASTNode {
-	left := p.parseComparisonExpr()
+	left := p.parseLogicalExpr()
 
 	if p.at().TokenType == tokens.Equals {
 		p.eat() // Advance past equals
@@ -181,6 +181,28 @@ func (p *Parser) parseAssignmentExpr() ast.ASTNode {
 		return ast.AssignmentExprNode{
 			Value:    value,
 			Assignee: left,
+		}
+	}
+
+	return left
+}
+
+func (p *Parser) parseLogicalExpr() ast.ASTNode {
+	left := p.parseComparisonExpr()
+
+	for {
+		tk := p.at().TokenType
+		if tk == tokens.And || tk == tokens.Or {
+			operator := p.eat().Value
+			right := p.parseComparisonExpr()
+
+			left = ast.LogicalExprNode{
+				Left:     left,
+				Right:    right,
+				Operator: ast.BinaryOperatorKind(operator),
+			}
+		} else {
+			break
 		}
 	}
 

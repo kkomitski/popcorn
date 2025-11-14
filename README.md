@@ -371,7 +371,7 @@ calculate(multiply, 4, 7);  // 28
 - [x] Early return with `pop` keyword
 - [x] Comparison operators (`==`, `!=`, `<`, `>`, `<=`, `>=`)
 - [x] String type and string operations
-- [ ] Boolean logic operators (`&&`, `||`, `!`)
+- [x] Boolean logic operators (`&&`, `||`, `!`)
 - [x] Implement boolean keywords (`true`, `false`)
 - [ ] Control flow (`if`, `while`, `for`)
 - [ ] Array methods (push, pop, length, map, filter)
