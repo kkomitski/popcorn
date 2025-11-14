@@ -1,4 +1,5 @@
 const foo = true
-const bar = true
+const bar = false
 
-foo == bar
+const bazTrue = foo || bar
+const bazFalse = foo && bar

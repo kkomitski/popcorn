@@ -10,8 +10,17 @@ let sum = 10 + 20
 // Test 4: Binary expression (multiplication)
 let product = 5 * 6
 
-// Test 5: Comparison expression (less than)
-let isLess = 5 < 10
+// Test 14: Comparison operators (==)
+let isEqual = 10 == 10
+
+// Test 15: Comparison operators (!=)
+let isNotEqual = 5 != 10
+
+// Test 16: Comparison operators (<)
+let isLessThan = 3 < 5
+
+// Test 17: Comparison operators (>)
+let isGreaterThan = 10 > 5
 
 // Test 6: Assignment expression
 x = 50
@@ -39,14 +48,10 @@ let personName = person.name
 // Test 13: Member expression (bracket notation)
 let firstNumber = numbers[0]
 
-// Test 14: Comparison operators (==)
-let isEqual = 10 == 10
+// Test 18: Logical operators (&&)
+let isTrue = true && true
+let isFalse = true && false
 
-// Test 15: Comparison operators (!=)
-let isNotEqual = 5 != 10
-
-// Test 16: Comparison operators (<)
-let isLessThan = 3 < 5
-
-// Test 17: Comparison operators (>)
-let isGreaterThan = 10 > 5
+// Test 18: Logical operators (||)
+let isTrue = true || false
+let isFalse = false || false

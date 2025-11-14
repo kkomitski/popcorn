@@ -5,9 +5,30 @@ import (
 	FE "pop/frontend"
 	"pop/frontend/types/ast"
 	"testing"
+
+	"github.com/stretchr/testify/assert"
+	"github.com/stretchr/testify/require"
 )
 
 const PARSER_FILE = "../mocks/parser-mock.pop"
+
+// Update based on mock file content
+const EXPECTED_STATEMENTS_COUNT = 20
+
+func assertVariableDeclaration(t *testing.T, node ast.ASTNode, expectedIdentifier string, shouldBeConstant bool) ast.VariableDeclarationNode {
+	varDecl, ok := node.(ast.VariableDeclarationNode)
+	require.True(t, ok, "Expected VariableDeclarationNode, got %T", node)
+
+	assert.Equalf(t, expectedIdentifier, varDecl.Identifier, "Expected identifier to be '%s', instead got '%s'", expectedIdentifier, varDecl.Identifier)
+
+	if shouldBeConstant {
+		assert.True(t, varDecl.Constant, "Should be constant")
+	} else {
+		assert.False(t, varDecl.Constant, "Should not be constant")
+	}
+
+	return varDecl
+}
 
 func TestParser(t *testing.T) {
 	content, err := os.ReadFile(PARSER_FILE)
@@ -18,401 +39,287 @@ func TestParser(t *testing.T) {
 	tokensOut := FE.Tokenize(string(content))
 	astOut := FE.ProduceAST(tokensOut)
 
-	// We expect multiple statements in our mock file
-	expectedStatementsCount := 17 // Update based on mock file content
-	if len(astOut.Body) != expectedStatementsCount {
-		t.Fatalf("Expected %d top-level statements, got %d", expectedStatementsCount, len(astOut.Body))
-	}
+	t.Run("Have enough statements in the mock file", func(t *testing.T) {
+		require.Equal(t, EXPECTED_STATEMENTS_COUNT, len(astOut.Body))
+	})
 
 	// Test 1: Variable declaration with let
 	t.Run("VariableDeclaration_Let", func(t *testing.T) {
 		node := astOut.Body[0]
-		varDecl, ok := node.(ast.VariableDeclarationNode)
-		if !ok {
-			t.Fatalf("Expected VariableDeclarationNode, got %T", node)
-		}
-		if varDecl.Identifier != "x" {
-			t.Errorf("Expected identifier 'x', got '%s'", varDecl.Identifier)
-		}
-		if varDecl.Constant {
-			t.Errorf("Expected non-constant declaration")
-		}
+
+		varDecl := assertVariableDeclaration(t, node, "x", false)
+
+		// Use require again for type assertion
 		numLiteral, ok := varDecl.Value.(ast.NumericLiteralExprNode)
-		if !ok {
-			t.Fatalf("Expected NumericLiteralExprNode, got %T", varDecl.Value)
-		}
-		if numLiteral.Value != 42 {
-			t.Errorf("Expected value 42, got %f", numLiteral.Value)
-		}
+		require.True(t, ok, "Expected NumericLiteralExprNode, got %T", varDecl.Value)
+		assert.Equal(t, float64(42), numLiteral.Value, "Value should be 42")
 	})
 
 	// Test 2: Variable declaration with const
 	t.Run("VariableDeclaration_Const", func(t *testing.T) {
 		node := astOut.Body[1]
-		varDecl, ok := node.(ast.VariableDeclarationNode)
-		if !ok {
-			t.Fatalf("Expected VariableDeclarationNode, got %T", node)
-		}
-		if varDecl.Identifier != "y" {
-			t.Errorf("Expected identifier 'y', got '%s'", varDecl.Identifier)
-		}
-		if !varDecl.Constant {
-			t.Errorf("Expected constant declaration")
-		}
+
+		varDecl := assertVariableDeclaration(t, node, "y", true)
+
 		numLiteral, ok := varDecl.Value.(ast.NumericLiteralExprNode)
-		if !ok {
-			t.Fatalf("Expected NumericLiteralExprNode, got %T", varDecl.Value)
-		}
-		if numLiteral.Value != 100 {
-			t.Errorf("Expected value 100, got %f", numLiteral.Value)
-		}
+		require.True(t, ok, "Expected NumericLiteralExprNode, got %T", node)
+		assert.Equal(t, float64(100), numLiteral.Value, "Value should be 100")
 	})
 
 	// Test 3: Binary expression (addition)
 	t.Run("BinaryExpression_Addition", func(t *testing.T) {
 		node := astOut.Body[2]
-		varDecl, ok := node.(ast.VariableDeclarationNode)
-		if !ok {
-			t.Fatalf("Expected VariableDeclarationNode, got %T", node)
-		}
-		if varDecl.Identifier != "sum" {
-			t.Errorf("Expected identifier 'sum', got '%s'", varDecl.Identifier)
-		}
 
-		binaryExpr, ok := varDecl.Value.(ast.BinaryExprNode)
-		if !ok {
-			t.Fatalf("Expected BinaryExprNode, got %T", varDecl.Value)
-		}
-		if binaryExpr.Operator != ast.Add {
-			t.Errorf("Expected operator '+', got '%s'", binaryExpr.Operator)
-		}
+		varDecl := assertVariableDeclaration(t, node, "sum", false)
 
-		left, ok := binaryExpr.Left.(ast.NumericLiteralExprNode)
-		if !ok || left.Value != 10 {
-			t.Errorf("Expected left operand 10")
-		}
-		right, ok := binaryExpr.Right.(ast.NumericLiteralExprNode)
-		if !ok || right.Value != 20 {
-			t.Errorf("Expected right operand 20")
-		}
+		binExpr, ok := varDecl.Value.(ast.BinaryExprNode)
+		require.True(t, ok, "Expected 'BinaryExprNode', got %T", node)
+
+		left, isLeftCorrectType := binExpr.Left.(ast.NumericLiteralExprNode)
+		right, isRightCorrectType := binExpr.Right.(ast.NumericLiteralExprNode)
+
+		require.True(t, isLeftCorrectType, "Expected left side of binary expression to be NumericLiteralExprNode")
+		require.True(t, isRightCorrectType, "Expected right side of binary expression to be NumericLiteralExprNode")
+
+		assert.Equal(t, binExpr.Operator, ast.BinaryOperatorKind("+"), "Expected operator for addition binary expressions to be '+', instead got %s", binExpr.Operator)
+
+		assert.Equal(t, left.Value, float64(10), "Expected left side of binary expression to be '10', got %v", left.Value)
+		assert.Equal(t, right.Value, float64(20), "Expected right side of binary expression to be '10', got %v", right.Value)
 	})
 
 	// Test 4: Binary expression (multiplication)
 	t.Run("BinaryExpression_Multiplication", func(t *testing.T) {
 		node := astOut.Body[3]
-		varDecl, ok := node.(ast.VariableDeclarationNode)
-		if !ok {
-			t.Fatalf("Expected VariableDeclarationNode, got %T", node)
-		}
 
-		binaryExpr, ok := varDecl.Value.(ast.BinaryExprNode)
-		if !ok {
-			t.Fatalf("Expected BinaryExprNode, got %T", varDecl.Value)
-		}
-		if binaryExpr.Operator != ast.Multiply {
-			t.Errorf("Expected operator '*', got '%s'", binaryExpr.Operator)
-		}
+		varDecl := assertVariableDeclaration(t, node, "product", false)
+
+		binExpr, ok := varDecl.Value.(ast.BinaryExprNode)
+		require.True(t, ok, "Expected 'BinaryExprNode', got %T", node)
+
+		left, isLeftCorrectType := binExpr.Left.(ast.NumericLiteralExprNode)
+		right, isRightCorrectType := binExpr.Right.(ast.NumericLiteralExprNode)
+
+		require.True(t, isLeftCorrectType, "Expected left side of binary expression to be NumericLiteralExprNode")
+		require.True(t, isRightCorrectType, "Expected right side of binary expression to be NumericLiteralExprNode")
+
+		assert.Equal(t, binExpr.Operator, ast.BinaryOperatorKind("*"), "Expected operator for multiplication binary expressions to be '*', instead got %s", binExpr.Operator)
+
+		assert.Equal(t, left.Value, float64(5), "Expected left side of binary expression to be '5', got %v", left.Value)
+		assert.Equal(t, right.Value, float64(6), "Expected right side of binary expression to be '6', got %v", right.Value)
 	})
 
 	// Test 5: Comparison expression
-	t.Run("ComparisonExpression_LessThan", func(t *testing.T) {
-		node := astOut.Body[4]
-		varDecl, ok := node.(ast.VariableDeclarationNode)
-		if !ok {
-			t.Fatalf("Expected VariableDeclarationNode, got %T", node)
+	t.Run("ComparisonOperators", func(t *testing.T) {
+		tests := []struct {
+			name       string
+			nodeIndex  int
+			identifier string
+			operator   ast.BinaryOperatorKind
+			leftValue  float64
+			rightValue float64
+		}{
+			{"Equal", 4, "isEqual", ast.Equal, 10, 10},
+			{"NotEqual", 5, "isNotEqual", ast.NotEqual, 5, 10},
+			{"LessThan", 6, "isLessThan", ast.LessThan, 3, 5},
+			{"GreaterThan", 7, "isGreaterThan", ast.GreaterThan, 10, 5},
 		}
 
-		binaryExpr, ok := varDecl.Value.(ast.BinaryExprNode)
-		if !ok {
-			t.Fatalf("Expected BinaryExprNode, got %T", varDecl.Value)
-		}
-		if binaryExpr.Operator != ast.LessThan {
-			t.Errorf("Expected operator '<', got '%s'", binaryExpr.Operator)
+		for _, tt := range tests {
+			t.Run(tt.name, func(t *testing.T) {
+				node := astOut.Body[tt.nodeIndex]
+
+				varDecl := assertVariableDeclaration(t, node, tt.identifier, false)
+
+				binExpr, ok := varDecl.Value.(ast.BinaryExprNode)
+				require.True(t, ok, "Expected BinaryExprNode, got %T", varDecl.Value)
+
+				left, ok := binExpr.Left.(ast.NumericLiteralExprNode)
+				require.True(t, ok, "Expected left side to be NumericLiteralExprNode, got %T", binExpr.Left)
+
+				right, ok := binExpr.Right.(ast.NumericLiteralExprNode)
+				require.True(t, ok, "Expected right side to be NumericLiteralExprNode, got %T", binExpr.Right)
+
+				assert.Equal(t, tt.operator, binExpr.Operator, "Expected operator '%s'", tt.operator)
+				assert.Equal(t, tt.leftValue, left.Value, "Expected left value to be %v", tt.leftValue)
+				assert.Equal(t, tt.rightValue, right.Value, "Expected right value to be %v", tt.rightValue)
+			})
 		}
 	})
 
-	// Test 6: Assignment expression
+	// Test 5: Assignment expression
 	t.Run("AssignmentExpression", func(t *testing.T) {
-		node := astOut.Body[5]
-		assignExpr, ok := node.(ast.AssignmentExprNode)
-		if !ok {
-			t.Fatalf("Expected AssignmentExprNode, got %T", node)
-		}
+		node := astOut.Body[8]
 
-		assignee, ok := assignExpr.Assignee.(ast.IdentifierExprNode)
-		if !ok {
-			t.Fatalf("Expected IdentifierExprNode assignee, got %T", assignExpr.Assignee)
-		}
-		if assignee.Symbol != "x" {
-			t.Errorf("Expected assignee 'x', got '%s'", assignee.Symbol)
-		}
+		varAssignment, ok := node.(ast.AssignmentExprNode)
+		require.True(t, ok, "Expected AssignmentExprNode, got %T", node)
 
-		value, ok := assignExpr.Value.(ast.NumericLiteralExprNode)
-		if !ok {
-			t.Fatalf("Expected NumericLiteralExprNode value, got %T", assignExpr.Value)
-		}
-		if value.Value != 50 {
-			t.Errorf("Expected value 50, got %f", value.Value)
-		}
+		assignee, ok := varAssignment.Assignee.(ast.IdentifierExprNode)
+		require.True(t, ok, "Expected assignee to be of type 'IdentifierExprNode', got %T", node)
+		assert.Equal(t, assignee.Symbol, "x", "Expected assignment variable name to be 'x', got %s", assignee.Symbol)
+
+		val, ok := varAssignment.Value.(ast.NumericLiteralExprNode)
+		require.True(t, ok, "Expected Value property to be of type 'NumericLiteralExprNode', got %T", node)
+		assert.Equal(t, val.Value, float64(50), "Expected value to be '50'")
 	})
 
 	// Test 7: Function declaration
 	t.Run("FunctionDeclaration", func(t *testing.T) {
-		node := astOut.Body[6]
-		fnDecl, ok := node.(ast.FunctionDeclarationNode)
-		if !ok {
-			t.Fatalf("Expected FunctionDeclarationNode, got %T", node)
-		}
-		if fnDecl.Name != "add" {
-			t.Errorf("Expected function name 'add', got '%s'", fnDecl.Name)
-		}
-		if len(fnDecl.Params) != 2 {
-			t.Fatalf("Expected 2 parameters, got %d", len(fnDecl.Params))
-		}
-		if fnDecl.Params[0] != "a" || fnDecl.Params[1] != "b" {
-			t.Errorf("Expected params ['a', 'b'], got %v", fnDecl.Params)
-		}
-		if len(fnDecl.Body) != 1 {
-			t.Fatalf("Expected 1 statement in body, got %d", len(fnDecl.Body))
-		}
+		node := astOut.Body[9]
 
-		// Check the return statement
+		fnDecl, ok := node.(ast.FunctionDeclarationNode)
+		require.True(t, ok, "Expected FunctionDeclarationNode, got %T", node)
+
+		assert.Equal(t, "add", fnDecl.Name, "Expected function name to be 'add'")
+		require.Len(t, fnDecl.Params, 2, "Expected 2 parameters")
+		assert.Equal(t, "a", fnDecl.Params[0], "Expected first parameter to be 'a'")
+		assert.Equal(t, "b", fnDecl.Params[1], "Expected second parameter to be 'b'")
+		require.Len(t, fnDecl.Body, 1, "Expected 1 statement in body")
+
 		retStmt, ok := fnDecl.Body[0].(ast.ReturnStatementNode)
-		if !ok {
-			t.Fatalf("Expected ReturnStatementNode, got %T", fnDecl.Body[0])
-		}
+		require.True(t, ok, "Expected ReturnStatementNode, got %T", fnDecl.Body[0])
 
 		binaryExpr, ok := retStmt.Value.(ast.BinaryExprNode)
-		if !ok {
-			t.Fatalf("Expected BinaryExprNode in return, got %T", retStmt.Value)
-		}
-		if binaryExpr.Operator != ast.Add {
-			t.Errorf("Expected operator '+', got '%s'", binaryExpr.Operator)
-		}
+		require.True(t, ok, "Expected BinaryExprNode in return, got %T", retStmt.Value)
+		assert.Equal(t, ast.Add, binaryExpr.Operator, "Expected operator to be '+'")
 	})
 
 	// Test 8: Function call
 	t.Run("FunctionCall", func(t *testing.T) {
-		node := astOut.Body[7]
-		varDecl, ok := node.(ast.VariableDeclarationNode)
-		if !ok {
-			t.Fatalf("Expected VariableDeclarationNode, got %T", node)
-		}
+		node := astOut.Body[10]
+
+		varDecl := assertVariableDeclaration(t, node, "result", false)
 
 		callExpr, ok := varDecl.Value.(ast.CallExprNode)
-		if !ok {
-			t.Fatalf("Expected CallExprNode, got %T", varDecl.Value)
-		}
+		require.True(t, ok, "Expected CallExprNode, got %T", varDecl.Value)
 
 		caller, ok := callExpr.Caller.(ast.IdentifierExprNode)
-		if !ok {
-			t.Fatalf("Expected IdentifierExprNode caller, got %T", callExpr.Caller)
-		}
-		if caller.Symbol != "add" {
-			t.Errorf("Expected caller 'add', got '%s'", caller.Symbol)
-		}
+		require.True(t, ok, "Expected IdentifierExprNode caller, got %T", callExpr.Caller)
+		assert.Equal(t, "add", caller.Symbol, "Expected caller to be 'add'")
 
-		if len(callExpr.Args) != 2 {
-			t.Fatalf("Expected 2 arguments, got %d", len(callExpr.Args))
-		}
+		require.Len(t, callExpr.Args, 2, "Expected 2 arguments")
 	})
 
 	// Test 9: String literal
 	t.Run("StringLiteral", func(t *testing.T) {
-		node := astOut.Body[8]
-		varDecl, ok := node.(ast.VariableDeclarationNode)
-		if !ok {
-			t.Fatalf("Expected VariableDeclarationNode, got %T", node)
-		}
+		node := astOut.Body[11]
+
+		varDecl := assertVariableDeclaration(t, node, "greeting", false)
 
 		strLiteral, ok := varDecl.Value.(ast.StringLiteralExprNode)
-		if !ok {
-			t.Fatalf("Expected StringLiteralExprNode, got %T", varDecl.Value)
-		}
-		if strLiteral.Value != "hello" {
-			t.Errorf("Expected string 'hello', got '%s'", strLiteral.Value)
-		}
+		require.True(t, ok, "Expected StringLiteralExprNode, got %T", varDecl.Value)
+		assert.Equal(t, "hello", strLiteral.Value, "Expected string to be 'hello'")
 	})
 
 	// Test 10: Array literal
 	t.Run("ArrayLiteral", func(t *testing.T) {
-		node := astOut.Body[9]
-		varDecl, ok := node.(ast.VariableDeclarationNode)
-		if !ok {
-			t.Fatalf("Expected VariableDeclarationNode, got %T", node)
-		}
+		node := astOut.Body[12]
+
+		varDecl := assertVariableDeclaration(t, node, "numbers", false)
 
 		arrLiteral, ok := varDecl.Value.(ast.ArrayLiteralExprNode)
-		if !ok {
-			t.Fatalf("Expected ArrayLiteralExprNode, got %T", varDecl.Value)
-		}
-		if len(arrLiteral.Elements) != 5 {
-			t.Fatalf("Expected 5 elements, got %d", len(arrLiteral.Elements))
-		}
-		if arrLiteral.Size != 5 {
-			t.Errorf("Expected size 5, got %d", arrLiteral.Size)
-		}
+		require.True(t, ok, "Expected ArrayLiteralExprNode, got %T", varDecl.Value)
+		require.Len(t, arrLiteral.Elements, 5, "Expected 5 elements")
+		assert.Equal(t, int64(5), arrLiteral.Size, "Expected size to be 5")
 
-		// Check first element
 		firstElem, ok := arrLiteral.Elements[0].(ast.NumericLiteralExprNode)
-		if !ok || firstElem.Value != 1 {
-			t.Errorf("Expected first element to be 1")
-		}
+		require.True(t, ok, "Expected first element to be NumericLiteralExprNode")
+		assert.Equal(t, float64(1), firstElem.Value, "Expected first element to be 1")
 	})
 
 	// Test 11: Object literal
 	t.Run("ObjectLiteral", func(t *testing.T) {
-		node := astOut.Body[10]
-		varDecl, ok := node.(ast.VariableDeclarationNode)
-		if !ok {
-			t.Fatalf("Expected VariableDeclarationNode, got %T", node)
-		}
+		node := astOut.Body[13]
+
+		varDecl := assertVariableDeclaration(t, node, "person", false)
 
 		objLiteral, ok := varDecl.Value.(ast.ObjectLiteralExprNode)
-		if !ok {
-			t.Fatalf("Expected ObjectLiteralExprNode, got %T", varDecl.Value)
-		}
-		if len(objLiteral.Properties) != 2 {
-			t.Fatalf("Expected 2 properties, got %d", len(objLiteral.Properties))
-		}
+		require.True(t, ok, "Expected ObjectLiteralExprNode, got %T", varDecl.Value)
+		require.Len(t, objLiteral.Properties, 2, "Expected 2 properties")
 
-		// Check first property
-		if objLiteral.Properties[0].Key != "name" {
-			t.Errorf("Expected first property key 'name', got '%s'", objLiteral.Properties[0].Key)
-		}
+		assert.Equal(t, "name", objLiteral.Properties[0].Key, "Expected first property key to be 'name'")
 
 		strValue, ok := objLiteral.Properties[0].Value.(ast.StringLiteralExprNode)
-		if !ok || strValue.Value != "John" {
-			t.Errorf("Expected first property value 'John'")
-		}
+		require.True(t, ok, "Expected first property value to be StringLiteralExprNode")
+		assert.Equal(t, "John", strValue.Value, "Expected first property value to be 'John'")
 
-		// Check second property
-		if objLiteral.Properties[1].Key != "age" {
-			t.Errorf("Expected second property key 'age', got '%s'", objLiteral.Properties[1].Key)
-		}
+		assert.Equal(t, "age", objLiteral.Properties[1].Key, "Expected second property key to be 'age'")
 	})
 
 	// Test 12: Member expression (dot notation)
 	t.Run("MemberExpression_Dot", func(t *testing.T) {
-		node := astOut.Body[11]
-		varDecl, ok := node.(ast.VariableDeclarationNode)
-		if !ok {
-			t.Fatalf("Expected VariableDeclarationNode, got %T", node)
-		}
+		node := astOut.Body[14]
+
+		varDecl := assertVariableDeclaration(t, node, "personName", false)
 
 		memberExpr, ok := varDecl.Value.(ast.MemberExprNode)
-		if !ok {
-			t.Fatalf("Expected MemberExprNode, got %T", varDecl.Value)
-		}
+		require.True(t, ok, "Expected MemberExprNode, got %T", varDecl.Value)
 
-		if memberExpr.Computed {
-			t.Errorf("Expected non-computed (dot notation) access")
-		}
+		assert.False(t, memberExpr.Computed, "Should be non-computed (dot notation) access")
 
 		object, ok := memberExpr.Object.(ast.IdentifierExprNode)
-		if !ok || object.Symbol != "person" {
-			t.Errorf("Expected object 'person'")
-		}
+		require.True(t, ok, "Expected object to be IdentifierExprNode")
+		assert.Equal(t, "person", object.Symbol, "Expected object to be 'person'")
 
 		property, ok := memberExpr.Property.(ast.IdentifierExprNode)
-		if !ok || property.Symbol != "name" {
-			t.Errorf("Expected property 'name'")
-		}
+		require.True(t, ok, "Expected property to be IdentifierExprNode")
+		assert.Equal(t, "name", property.Symbol, "Expected property to be 'name'")
 	})
 
 	// Test 13: Member expression (bracket notation)
 	t.Run("MemberExpression_Bracket", func(t *testing.T) {
-		node := astOut.Body[12]
-		varDecl, ok := node.(ast.VariableDeclarationNode)
-		if !ok {
-			t.Fatalf("Expected VariableDeclarationNode, got %T", node)
-		}
+		node := astOut.Body[15]
+
+		varDecl := assertVariableDeclaration(t, node, "firstNumber", false)
 
 		memberExpr, ok := varDecl.Value.(ast.MemberExprNode)
-		if !ok {
-			t.Fatalf("Expected MemberExprNode, got %T", varDecl.Value)
-		}
+		require.True(t, ok, "Expected MemberExprNode, got %T", varDecl.Value)
 
-		if !memberExpr.Computed {
-			t.Errorf("Expected computed (bracket notation) access")
-		}
+		assert.True(t, memberExpr.Computed, "Should be computed (bracket notation) access")
 
 		object, ok := memberExpr.Object.(ast.IdentifierExprNode)
-		if !ok || object.Symbol != "numbers" {
-			t.Errorf("Expected object 'numbers'")
-		}
+		require.True(t, ok, "Expected object to be IdentifierExprNode")
+		assert.Equal(t, "numbers", object.Symbol, "Expected object to be 'numbers'")
 
 		property, ok := memberExpr.Property.(ast.NumericLiteralExprNode)
-		if !ok || property.Value != 0 {
-			t.Errorf("Expected property index 0")
-		}
+		require.True(t, ok, "Expected property to be NumericLiteralExprNode")
+		assert.Equal(t, float64(0), property.Value, "Expected property index to be 0")
 	})
 
-	// Test 14: Comparison operators (==)
-	t.Run("ComparisonOperator_Equal", func(t *testing.T) {
-		node := astOut.Body[13]
-		varDecl, ok := node.(ast.VariableDeclarationNode)
-		if !ok {
-			t.Fatalf("Expected VariableDeclarationNode, got %T", node)
+	// Test 14: Logical operators
+	t.Run("LogicalOperators", func(t *testing.T) {
+		tests := []struct {
+			name       string
+			nodeIndex  int
+			identifier string
+			operator   ast.BinaryOperatorKind
+			leftValue  bool
+			rightValue bool
+		}{
+			{"And_True", 16, "isTrue", ast.And, true, true},
+			{"And_False", 17, "isFalse", ast.And, true, false},
+			{"Or_True", 18, "isTrue", ast.Or, true, false},
+			{"Or_False", 19, "isFalse", ast.Or, false, false},
 		}
 
-		binaryExpr, ok := varDecl.Value.(ast.BinaryExprNode)
-		if !ok {
-			t.Fatalf("Expected BinaryExprNode, got %T", varDecl.Value)
-		}
-		if binaryExpr.Operator != ast.Equal {
-			t.Errorf("Expected operator '==', got '%s'", binaryExpr.Operator)
-		}
-	})
+		for _, tt := range tests {
+			t.Run(tt.name, func(t *testing.T) {
+				node := astOut.Body[tt.nodeIndex]
 
-	// Test 15: Comparison operators (!=)
-	t.Run("ComparisonOperator_NotEqual", func(t *testing.T) {
-		node := astOut.Body[14]
-		varDecl, ok := node.(ast.VariableDeclarationNode)
-		if !ok {
-			t.Fatalf("Expected VariableDeclarationNode, got %T", node)
-		}
+				varDecl := assertVariableDeclaration(t, node, tt.identifier, false)
 
-		binaryExpr, ok := varDecl.Value.(ast.BinaryExprNode)
-		if !ok {
-			t.Fatalf("Expected BinaryExprNode, got %T", varDecl.Value)
-		}
-		if binaryExpr.Operator != ast.NotEqual {
-			t.Errorf("Expected operator '!=', got '%s'", binaryExpr.Operator)
-		}
-	})
+				logicalExpr, ok := varDecl.Value.(ast.LogicalExprNode)
+				require.True(t, ok, "Expected LogicalExprNode, got %T", varDecl.Value)
 
-	// Test 16: Comparison operators (<)
-	t.Run("ComparisonOperator_LessThan", func(t *testing.T) {
-		node := astOut.Body[15]
-		varDecl, ok := node.(ast.VariableDeclarationNode)
-		if !ok {
-			t.Fatalf("Expected VariableDeclarationNode, got %T", node)
-		}
+				left, ok := logicalExpr.Left.(ast.BooleanLiteralExprNode)
+				require.True(t, ok, "Expected left side to be BooleanLiteralExprNode, got %T", logicalExpr.Left)
 
-		binaryExpr, ok := varDecl.Value.(ast.BinaryExprNode)
-		if !ok {
-			t.Fatalf("Expected BinaryExprNode, got %T", varDecl.Value)
-		}
-		if binaryExpr.Operator != ast.LessThan {
-			t.Errorf("Expected operator '<', got '%s'", binaryExpr.Operator)
-		}
-	})
+				right, ok := logicalExpr.Right.(ast.BooleanLiteralExprNode)
+				require.True(t, ok, "Expected right side to be BooleanLiteralExprNode, got %T", logicalExpr.Right)
 
-	// Test 17: Comparison operators (>)
-	t.Run("ComparisonOperator_GreaterThan", func(t *testing.T) {
-		node := astOut.Body[16]
-		varDecl, ok := node.(ast.VariableDeclarationNode)
-		if !ok {
-			t.Fatalf("Expected VariableDeclarationNode, got %T", node)
-		}
-
-		binaryExpr, ok := varDecl.Value.(ast.BinaryExprNode)
-		if !ok {
-			t.Fatalf("Expected BinaryExprNode, got %T", varDecl.Value)
-		}
-		if binaryExpr.Operator != ast.GreaterThan {
-			t.Errorf("Expected operator '>', got '%s'", binaryExpr.Operator)
+				assert.Equal(t, tt.operator, logicalExpr.Operator, "Expected operator '%s'", tt.operator)
+				assert.Equal(t, tt.leftValue, left.Value, "Expected left value to be %v", tt.leftValue)
+				assert.Equal(t, tt.rightValue, right.Value, "Expected right value to be %v", tt.rightValue)
+			})
 		}
 	})
 }
