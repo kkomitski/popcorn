@@ -21,13 +21,13 @@ A lightweight, interpreted programming language built with Go. Popcorn features 
 Run the install script to build and install Popcorn:
 
 ```bash
-./install.sh
+./install-popcorn.sh
 ```
 
 This will:
-- Build the `pop` binary
-- Install it to `~/bin`
-- Add `~/bin` to your PATH (if needed)
+- Build the `popcorn` binary
+- Install it to `/usr/local/popcorn/bin`
+- Add `/usr/local/popcorn/bin` to your PATH (if needed)
 
 After installation, restart your terminal or run:
 
@@ -53,17 +53,17 @@ After running, restart VS Code. Open a `.pop` file and select the "Popcorn Butte
 
 **Start the REPL:**
 ```bash
-pop
+popcorn
 ```
 
 **Execute a file:**
 ```bash
-pop script.pop
+popcorn script.pop
 ```
 
 **Uninstall:**
 ```bash
-./uninstall.sh
+./uninstall-popcorn.sh
 ```
 
 ## 📝 Syntax Guide
@@ -72,31 +72,31 @@ pop script.pop
 
 ```javascript
 // Declare mutable variables
-let x = 10;
-let name = "Popcorn";
+let x = 10
+let name = "Popcorn"
 
 // Declare immutable constants
-const PI = 3.14159;
-const MAX_SIZE = 100;
+const PI = 3.14159
+const MAX_SIZE = 100
 ```
 
 ### Numbers
 
 ```javascript
-let a = 42;
-let b = 3.14;
-let sum = a + b;
-let product = a * b;
+let a = 42
+let b = 3.14
+let sum = a + b
+let product = a * b
 ```
 
 ### Arithmetic Operations
 
 ```javascript
-let addition = 5 + 3;        // 8
-let subtraction = 10 - 4;    // 6
-let multiplication = 6 * 7;  // 42
-let division = 20 / 4;       // 5
-let modulo = 17 % 5;         // 2
+let addition = 5 + 3        // 8
+let subtraction = 10 - 4    // 6
+let multiplication = 6 * 7  // 42
+let division = 20 / 4       // 5
+let modulo = 17 % 5         // 2
 ```
 
 ### Functions
@@ -107,44 +107,44 @@ Functions are first-class citizens and support closures:
 // Function declaration
 fn add(a, b) {
   a + b
-};
+}
 
 // Function call
-let result = add(5, 10);  // 15
+let result = add(5, 10)  // 15
 
 // Early return with 'pop' keyword
 fn max(a, b) {
-  let result = a;
+  let result = a
   
-  pop result;  // Returns immediately with result
+  pop result  // Returns immediately with result
   
   // Code after 'pop' is not executed
-};
+}
 
 // Functions can pop without a value
 fn checkValue(x) {
-  pop;  // Returns null immediately
-};
+  pop  // Returns null immediately
+}
 
 // Functions with multiple statements
 fn greet(name) {
-  let message = "Hello, ";
+  let message = "Hello, "
   message
-};
+}
 
 // Nested functions and closures
 fn makeCounter() {
-  let count = 0;
+  let count = 0
   fn increment() {
-    count = count + 1;
+    count = count + 1
     count
-  };
+  }
   increment
-};
+}
 
-let counter = makeCounter();
-counter();  // 1
-counter();  // 2
+let counter = makeCounter()
+counter()  // 1
+counter()  // 2
 ```
 
 ### Arrays
@@ -153,22 +153,22 @@ Arrays are ordered collections of values with zero-based indexing:
 
 ```javascript
 // Array literal
-let numbers = [1, 2, 3, 4, 5];
+let numbers = [1, 2, 3, 4, 5]
 
 // Access elements by index
-numbers[0];  // 1
-numbers[2];  // 3
+numbers[0]  // 1
+numbers[2]  // 3
 
 // Arrays can contain mixed types
-let mixed = [42, "hello", { x: 10 }];
+let mixed = [42, "hello", { x: 10 }]
 
 // Nested arrays
-let matrix = [[1, 2], [3, 4], [5, 6]];
-matrix[0];     // [1, 2]
-matrix[1][0];  // 3
+let matrix = [[1, 2], [3, 4], [5, 6]]
+matrix[0]     // [1, 2]
+matrix[1][0]  // 3
 
 // Empty array
-let empty = [];
+let empty = []
 ```
 
 ### Objects
@@ -179,32 +179,32 @@ let person = {
   name: "Alice",
   age: 30,
   city: "NYC"
-};
+}
 
 // Access properties
-person.name;  // "Alice"
+person.name  // "Alice"
 
 // Shorthand property syntax
-let x = 10;
-let y = 20;
-let point = { x, y };  // Same as { x: x, y: y }
+let x = 10
+let y = 20
+let point = { x, y }  // Same as { x: x, y: y }
 ```
 
 ### Assignment
 
 ```javascript
-let x = 5;
-x = x + 1;  // x is now 6
+let x = 5
+x = x + 1  // x is now 6
 
-const y = 10;
-y = 20;  // Error: Cannot reassign constant variable
+const y = 10
+y = 20  // Error: Cannot reassign constant variable
 ```
 
 ### Comments
 
 ```javascript
 // This is a single-line comment
-let value = 42;  // Inline comment
+let value = 42  // Inline comment
 ```
 
 ## 🎯 REPL Commands
@@ -226,16 +226,16 @@ The interactive REPL provides an enhanced development experience:
 ### Example Session
 
 ```bash
-🍿 >> let x = 10;
-   → let x = 10;
+🍿 >> let x = 10
+   → let x = 10
    ← {Value:10}
 
-🍿 >> fn double(n) { n * 2 };
-   → fn double(n) { n * 2 };
+🍿 >> fn double(n) { n * 2 }
+   → fn double(n) { n * 2 }
    ← {Name:double Params:[n] ...}
 
-🍿 >> double(x);
-   → double(x);
+🍿 >> double(x)
+   → double(x)
    ← {Value:20}
 ```
 
@@ -243,20 +243,38 @@ The interactive REPL provides an enhanced development experience:
 
 ```
 popcorn/
-├── main.go              # Entry point
-├── frontend/            # Lexer and Parser
-│   ├── lexer.go        # Tokenization
-│   ├── parser.go       # AST generation
+├── main.go                # Entry point: CLI, REPL, file execution
+├── frontend/              # Lexer and Parser
+│   ├── lexer.go           # Tokenization (lexical analysis)
+│   ├── parser.go          # AST generation (parsing)
 │   └── types/
-│       ├── tokens/     # Token definitions
-│       └── ast/        # AST node types
-├── backend/             # Interpreter
-│   ├── interpreter.go  # AST evaluation
-│   ├── environment.go  # Variable scoping
-│   ├── types.go        # Runtime value types
-│   └── run.go          # REPL and file execution
-└── lib/                 # Utility functions
-    └── utils.go
+│       ├── tokens/        # Token definitions and enums
+│       └── ast/           # AST node types and structures
+├── backend/               # Interpreter and runtime
+│   ├── interpreter.go     # AST evaluation (interpreter core)
+│   ├── environment.go     # Variable scoping and environments
+│   ├── types.go           # Runtime value types (numbers, strings, arrays, etc.)
+│   └── run.go             # REPL and file execution logic
+├── lib/                   # Utility functions
+│   └── utils.go           # Helper utilities (character checks, etc.)
+├── extension/             # VS Code extension for syntax highlighting and theme
+│   ├── package.json
+│   ├── popcorn-highlight.ts
+│   ├── language-configuration.json
+│   ├── syntaxes/
+│   │   └── popcorn.tmLanguage.json
+│   └── themes/
+│       └── popcorn-butter.json
+├── test/                  # Unit and integration tests
+│   ├── frontend/
+│   │   ├── lexer_test.go
+│   │   └── parser_test.go
+│   ├── backend/
+│   │   └── environment_test.go
+│   └── mocks/             # Test fixtures and mock files
+│       ├── all-tokens.pop
+│       └── parser-mock.pop
+└── Makefile               # Build and test automation
 ```
 
 ### Execution Pipeline
@@ -311,23 +329,23 @@ go test ./...
 
 ```javascript
 fn fibonacci(n) {
-  let a = 0;
-  let b = 1;
-  let i = 0;
+  let a = 0
+  let b = 1
+  let i = 0
   
   fn loop() {
-    let temp = a;
-    a = b;
-    b = temp + b;
-    i = i + 1;
+    let temp = a
+    a = b
+    b = temp + b
+    i = i + 1
     
     i
-  };
+  }
   
   loop()
-};
+}
 
-fibonacci(10);
+fibonacci(10)
 ```
 
 ### Array Operations
@@ -335,20 +353,20 @@ fibonacci(10);
 ```javascript
 // Sum of array elements
 fn sum(arr) {
-  let total = 0;
-  let i = 0;
+  let total = 0
+  let i = 0
   
   // Note: Length function coming soon
   total
-};
+}
 
 // Find element in array
 fn findAt(arr, index) {
-  pop arr[index];
-};
+  pop arr[index]
+}
 
-let numbers = [10, 20, 30, 40];
-findAt(numbers, 2);  // 30
+let numbers = [10, 20, 30, 40]
+findAt(numbers, 2)  // 30
 ```
 
 ### Calculator
@@ -356,13 +374,13 @@ findAt(numbers, 2);  // 30
 ```javascript
 fn calculate(op, a, b) {
   op(a, b)
-};
+}
 
-fn add(x, y) { x + y };
-fn multiply(x, y) { x * y };
+fn add(x, y) { x + y }
+fn multiply(x, y) { x * y }
 
-calculate(add, 5, 3);       // 8
-calculate(multiply, 4, 7);  // 28
+calculate(add, 5, 3)       // 8
+calculate(multiply, 4, 7)  // 28
 ```
 
 ## 🗺️ Roadmap
