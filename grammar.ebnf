@@ -1,3 +1,20 @@
+# [EBNF Cheat Sheet]
+
+# | Symbol      | Meaning                                 |
+# |-------------|-----------------------------------------|
+# | `[...]`     | Optional (zero or one time)             |
+# | `{...}`     | Repetition (zero or more times)         |
+# | `(...)`     | Grouping                                |
+# | `|`         | Alternation (choice, "or")              |
+# | `=`         | Definition (assigns rule)               |
+# | `;`         | Rule terminator (end of rule)           |
+# | `"..."`     | Literal string                          |
+# | `'...'`     | Literal character                       |
+# | `identifier`| Reference to another rule               |
+
+# ---
+
+
 (* ==================== Program ==================== *)
 
 program              = statement_list ;
