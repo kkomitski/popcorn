@@ -1,0 +1,115 @@
+(* ==================== Program ==================== *)
+
+program              = statement_list ;
+statement_list       = { statement } ;
+
+
+(* ==================== Statements ==================== *)
+
+statement            = variable_declaration
+                     | function_declaration
+                     | return_statement
+                     | expression_statement ;
+
+variable_declaration = let_or_const identifier "=" expression newline
+                     | "let" identifier newline ;
+
+let_or_const         = "let" | "const" ;
+
+function_declaration = "fn" identifier "(" [ param_list ] ")" "{" { newline } statement_list "}" ;
+
+param_list           = identifier { "," identifier } ;
+
+return_statement     = "pop" [ expression ] ;
+
+expression_statement = expression newline ;
+
+
+(* ==================== Expressions ==================== *)
+
+expression           = assignment_expr ;
+
+assignment_expr      = assignee "=" assignment_expr
+                     | logical_expr ;
+
+assignee             = identifier
+                     | member_expr ;
+
+logical_expr         = comparison_expr { logical_op comparison_expr } ;
+
+logical_op           = "&&" | "||" ;
+
+comparison_expr      = additive_expr { comparison_op additive_expr } ;
+
+comparison_op        = "==" | "!=" | "<" | ">" | "<=" | ">=" ;
+
+additive_expr        = multiplicative_expr { additive_op multiplicative_expr } ;
+
+additive_op          = "+" | "-" ;
+
+multiplicative_expr  = call_member_expr { multiplicative_op call_member_expr } ;
+
+multiplicative_op    = "*" | "/" | "%" ;
+
+call_member_expr     = member_expr [ "(" [ arg_list ] ")" ] ;
+
+member_expr          = primary_expr { member_access } ;
+
+member_access        = "." identifier
+                     | "[" expression "]" ;
+
+arg_list             = expression { "," expression } ;
+
+primary_expr         = identifier
+                     | literal
+                     | array_literal
+                     | object_literal
+                     | "(" expression ")" ;
+
+
+(* ==================== Literals ==================== *)
+
+literal              = numeric_literal
+                     | string_literal
+                     | boolean_literal
+                     | null_literal ;
+
+numeric_literal      = digit_list [ "." digit_list ] ;
+
+digit_list           = digit { digit } ;
+
+digit                = "0" | "1" | "2" | "3" | "4" | "5" | "6" | "7" | "8" | "9" ;
+
+string_literal       = "\"" [ string_content ] "\"" ;
+
+string_content       = { any_char_except_quote } ;
+
+boolean_literal      = "true" | "false" ;
+
+null_literal         = "null" ;
+
+
+(* ==================== Arrays & Objects ==================== *)
+
+array_literal        = "[" [ element_list ] "]" ;
+
+element_list         = expression { "," expression } [ "," ] ;
+
+object_literal       = "{" [ property_list ] "}" ;
+
+property_list        = property { "," property } [ "," ] ;
+
+property             = identifier [ ":" expression ] ;
+
+
+(* ==================== Identifiers ==================== *)
+
+identifier           = letter { letter | digit | "_" } ;
+
+letter               = "a" | "b" | ... | "z"
+                     | "A" | "B" | ... | "Z"
+                     | "_" ;
+
+(* ==================== Whitespace ==================== *)
+
+newline              = "\n" ;
