@@ -2,6 +2,8 @@
 
 A lightweight, interpreted programming language built with Go. Popcorn features a clean syntax, dynamic typing, and an interactive REPL with syntax highlighting.
 
+Popcorn uses a standard lexer, an LL(1) parser (with left-associative operator parsing), and a walk-tree style interpreter. I am currently learning how to implement a bytecode compiler and a virtual machine to execute the bytecode, so Popcorn can run as a true bytecode-interpreted language.
+
 ## ✨ Features
 
 - **Interactive REPL** with syntax highlighting and formatted output
