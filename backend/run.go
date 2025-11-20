@@ -88,13 +88,14 @@ func highlightSyntax(line string) string {
 }
 
 func printHeader() {
-	fmt.Println("\033[1;35m╔════════════════════════════════════════════════╗\033[0m")
-	fmt.Println("\033[1;35m║\033[0m          🍿 \033[1;36mPopcorn Language REPL\033[0m 🍿           \033[1;35m║\033[0m")
-	fmt.Println("\033[1;35m╠════════════════════════════════════════════════╣\033[0m")
-	fmt.Println("\033[1;35m║\033[0m  \033[0;33mType 'exit' to quit\033[0m                           \033[1;35m║\033[0m")
-	fmt.Println("\033[1;35m║\033[0m  \033[0;33mType 'clear' to clear screen\033[0m                  \033[1;35m║\033[0m")
-	fmt.Println("\033[1;35m╚════════════════════════════════════════════════╝\033[0m")
-	fmt.Println()
+    fmt.Println("\033[1;35m╔══════════════════════════════════════════════════════════╗\033[0m")
+    fmt.Println("\033[1;35m║\033[0m          🍿 \033[1;36mPopcorn Language REPL\033[0m 🍿           \033[1;35m║\033[0m")
+    fmt.Println("\033[1;35m╠══════════════════════════════════════════════════════════╣\033[0m")
+    fmt.Println("\033[1;35m║\033[0m  \033[0;33mType 'exit' to quit\033[0m                           \033[1;35m║\033[0m")
+    fmt.Println("\033[1;35m║\033[0m  \033[0;33mType 'clear' to clear screen\033[0m                  \033[1;35m║\033[0m")
+    fmt.Println("\033[1;35m║\033[0m  \033[0;33mType 'verbose' for multi-line input (finish with ':send')\033[0m \033[1;35m║\033[0m")
+    fmt.Println("\033[1;35m╚══════════════════════════════════════════════════════════╝\033[0m")
+    fmt.Println()
 }
 
 func Repl() RuntimeVal {
@@ -103,23 +104,58 @@ func Repl() RuntimeVal {
 	printHeader()
 
 	env := MakeEnvironment()
+	verboseMode := false
+	var verboseBuffer strings.Builder
 
 	for {
-		// Cyan prompt
-		fmt.Print("🍿 \033[1;36m>>\033[0m ")
+		if !verboseMode {
+			// Cyan prompt
+			fmt.Print("🍿 \033[1;36m>>\033[0m ")
+		} else {
+			fmt.Print("🍿 \033[1;33m(v)\033[0m ")
+		}
+
 		if !scanner.Scan() {
 			break
 		}
 
 		line := scanner.Text()
-		if line == "exit" {
+
+		if !verboseMode && line == "exit" {
 			fmt.Println("\033[1;31m👋 Exiting REPL... Enjoy your popcorn!\033[0m")
 			break
 		}
 
-		if line == "clear" {
+		if !verboseMode && line == "clear" {
 			fmt.Print("\033[2J\033[H")
 			printHeader()
+			continue
+		}
+
+		if !verboseMode && line == "verbose" {
+			fmt.Println("\033[1;33m[Verbose mode: Enter multiple lines. Type ':send' on a new line to execute.]\033[0m")
+			verboseMode = true
+			verboseBuffer.Reset()
+			continue
+		}
+
+		if verboseMode {
+			if line == ":send" {
+				// Process the collected input
+				code := verboseBuffer.String()
+				if strings.TrimSpace(code) != "" {
+					highlighted := highlightSyntax(code)
+					fmt.Printf("   \033[2m→\033[0m %s\n", highlighted)
+
+					tokensSlice := FE.Tokenize(code)
+					ast := FE.ProduceAST(tokensSlice)
+					res := Evaluate(ast, env)
+					fmt.Printf("   \033[1;32m←\033[0m \033[1;32m%+v\033[0m\n\n", res)
+				}
+				verboseMode = false
+				continue
+			}
+			verboseBuffer.WriteString(line + "\n")
 			continue
 		}
 
