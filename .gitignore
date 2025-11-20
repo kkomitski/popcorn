@@ -68,3 +68,5 @@ coverage.html
 extension/node_modules*
 extension/out
 popcorn
+
+current_ast.json

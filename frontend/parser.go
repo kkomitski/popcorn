@@ -3,6 +3,7 @@ package frontend
 import (
 	"fmt"
 	"log"
+	"os"
 	"pop/frontend/types/ast"
 	"pop/frontend/types/tokens"
 	"strconv"
@@ -36,7 +37,7 @@ func (p *Parser) at() tokens.Token {
 func (p *Parser) expect(tokenType tokens.TokenType, err string) tokens.Token {
 	prev := p.eat()
 	if prev.TokenType != tokenType {
-		log.Fatalf("Parser error: %s\nExpected: %v, but got: %v", err, tokenType, prev.TokenType)
+		log.Fatalf("Parser error: %s\nExpected: '%v', but got: '%v'.", err, tokenType.String(), prev.TokenType.String())
 	}
 	return prev
 }
@@ -239,7 +240,12 @@ func (p *Parser) parseObjectExpr() ast.ASTNode {
 
 	properties := []ast.PropertyNode{}
 
+	// eat the new lines before object member assignments
 	for p.notEOF() && p.at().TokenType != tokens.CloseBrace {
+		if p.at().TokenType == tokens.NewLine {
+			p.eat()
+		}
+
 		key := p.expect(tokens.Identifier, "Object literal key expected!").Value
 
 		// Shorthand property: { key }
@@ -266,6 +272,11 @@ func (p *Parser) parseObjectExpr() ast.ASTNode {
 			Key:   key,
 			Value: value,
 		})
+
+		// eat the new lines after object member assignments
+		if p.at().TokenType == tokens.NewLine {
+			p.eat()
+		}
 
 		if p.at().TokenType != tokens.CloseBrace {
 			p.expect(tokens.Comma, "Expected comma or closing bracket following property")
@@ -495,9 +506,104 @@ func (p *Parser) parsePrimaryExpr() ast.ASTNode {
 	}
 }
 
+// Helpers
+// WrapASTWithKind recursively wraps all ASTNodes with JSONNode for JSON marshaling
+func WrapASTWithKind(node ast.ASTNode) ast.JSONNode {
+	if node == nil {
+		return ast.JSONNode{Kind: "ERR_UNKNOWN", Data: nil}
+	}
+
+	switch n := node.(type) {
+	case ast.Program:
+		body := make([]ast.ASTNode, len(n.Body))
+		for i, child := range n.Body {
+			body[i] = WrapASTWithKind(child)
+		}
+		return ast.JSONNode{Data: ast.Program{Body: body}}
+	case ast.VariableDeclarationNode:
+		return ast.JSONNode{Data: ast.VariableDeclarationNode{
+			Constant:   n.Constant,
+			Identifier: n.Identifier,
+			Value:      WrapASTWithKind(n.Value),
+		}}
+	case ast.FunctionDeclarationNode:
+		body := make([]ast.ASTNode, len(n.Body))
+		for i, child := range n.Body {
+			body[i] = WrapASTWithKind(child)
+		}
+		return ast.JSONNode{Data: ast.FunctionDeclarationNode{
+			Name:   n.Name,
+			Params: n.Params,
+			Body:   body,
+		}}
+	case ast.AssignmentExprNode:
+		return ast.JSONNode{Data: ast.AssignmentExprNode{
+			Assignee: WrapASTWithKind(n.Assignee),
+			Value:    WrapASTWithKind(n.Value),
+		}}
+	case ast.BinaryExprNode:
+		return ast.JSONNode{Data: ast.BinaryExprNode{
+			Left:     WrapASTWithKind(n.Left),
+			Right:    WrapASTWithKind(n.Right),
+			Operator: n.Operator,
+		}}
+	case ast.LogicalExprNode:
+		return ast.JSONNode{Data: ast.LogicalExprNode{
+			Left:     WrapASTWithKind(n.Left),
+			Right:    WrapASTWithKind(n.Right),
+			Operator: n.Operator,
+		}}
+	case ast.MemberExprNode:
+		return ast.JSONNode{Data: ast.MemberExprNode{
+			Object:   WrapASTWithKind(n.Object),
+			Property: WrapASTWithKind(n.Property),
+			Computed: n.Computed,
+		}}
+	case ast.CallExprNode:
+		args := make([]ast.ASTNode, len(n.Args))
+		for i, arg := range n.Args {
+			args[i] = WrapASTWithKind(arg)
+		}
+		return ast.JSONNode{Data: ast.CallExprNode{
+			Caller: WrapASTWithKind(n.Caller),
+			Args:   args,
+		}}
+	case ast.ArrayLiteralExprNode:
+		elements := make([]ast.ASTNode, len(n.Elements))
+		for i, elem := range n.Elements {
+			elements[i] = WrapASTWithKind(elem)
+		}
+		return ast.JSONNode{Data: ast.ArrayLiteralExprNode{
+			Elements: elements,
+			Size:     n.Size,
+		}}
+	case ast.ObjectLiteralExprNode:
+		props := make([]ast.PropertyNode, len(n.Properties))
+		for i, prop := range n.Properties {
+			props[i] = ast.PropertyNode{
+				Key:   prop.Key,
+				Value: WrapASTWithKind(prop.Value),
+			}
+		}
+		return ast.JSONNode{Data: ast.ObjectLiteralExprNode{
+			Properties: props,
+		}}
+	case ast.ReturnStatementNode:
+		return ast.JSONNode{Data: ast.ReturnStatementNode{
+			Value: WrapASTWithKind(n.Value),
+		}}
+	// Leaf nodes
+	case ast.IdentifierExprNode, ast.NumericLiteralExprNode, ast.StringLiteralExprNode,
+		ast.BooleanLiteralExprNode, ast.NullLiteralExprNode:
+		return ast.JSONNode{Data: n}
+	default:
+		return ast.JSONNode{Data: n}
+	}
+}
+
 // * ======= PUBLIC API ======= * \\
 
-func ProduceAST(tokens []tokens.Token) ast.Program {
+func ProduceAST(tokens []tokens.Token, verbose ...bool) ast.Program {
 	parser := Parser{
 		Tokens: tokens,
 		Pos:    0,
@@ -511,6 +617,21 @@ func ProduceAST(tokens []tokens.Token) ast.Program {
 		parser.skipNewlines()
 
 		program.Body = append(program.Body, parser.parseStatement())
+	}
+
+	isVerbose := true
+	if len(verbose) > 0 {
+		isVerbose = verbose[0]
+	}
+
+	if isVerbose {
+		wrappedAST := WrapASTWithKind(program)
+		jsonBytes, err := wrappedAST.MarshalJSON()
+		if err != nil {
+			log.Fatalf("Failed to marshal AST to JSON: %v", err)
+		}
+
+		os.WriteFile("current_ast.json", jsonBytes, 0777)
 	}
 
 	return program

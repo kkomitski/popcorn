@@ -164,90 +164,168 @@ func GetNodeKind(node ASTNode) NodeKind {
 	}
 }
 
+// GetNodeKind returns the NodeKind for any ASTNode using type switch
+func GetNodeKindAsString(node ASTNode) string {
+	switch node.(type) {
+	case Program, *Program:
+		return "ProgramStatement"
+	case VariableDeclarationNode, *VariableDeclarationNode:
+		return "VariableDeclaration"
+	case FunctionDeclarationNode, *FunctionDeclarationNode:
+		return "FunctionDeclaration"
+	case AssignmentExprNode, *AssignmentExprNode:
+		return "AssignmentExpr"
+	case BinaryExprNode, *BinaryExprNode:
+		return "BinaryExpr"
+	case MemberExprNode, *MemberExprNode:
+		return "MemberExpr"
+	case CallExprNode, *CallExprNode:
+		return "CallExpr"
+	case IdentifierExprNode, *IdentifierExprNode:
+		return "IdentifierExpr"
+	case NumericLiteralExprNode, *NumericLiteralExprNode:
+		return "NumericLiteral"
+	case StringLiteralExprNode, *StringLiteralExprNode:
+		return "StringLiteral"
+	case BooleanLiteralExprNode, *BooleanLiteralExprNode:
+		return "BooleanLiteral"
+	case NullLiteralExprNode, *NullLiteralExprNode:
+		return "NullLiteral"
+	case ArrayLiteralExprNode, *ArrayLiteralExprNode:
+		return "ArrayLiteral"
+	case PropertyNode, *PropertyNode:
+		return "Property"
+	case ObjectLiteralExprNode, *ObjectLiteralExprNode:
+		return "ObjectLiteral"
+	case UnaryExprNode, *UnaryExprNode:
+		return "UnaryExpr"
+	case LogicalExprNode, *LogicalExprNode:
+		return "LogicalExpr"
+	case ConditionalExprNode, *ConditionalExprNode:
+		return "ConditionalExpr"
+	case IndexExprNode, *IndexExprNode:
+		return "IndexExpr"
+	case IfStatementNode, *IfStatementNode:
+		return "IfStatement"
+	case WhileStatementNode, *WhileStatementNode:
+		return "WhileStatement"
+	case ForStatementNode, *ForStatementNode:
+		return "ForStatement"
+	case ReturnStatementNode, *ReturnStatementNode:
+		return "ReturnStatement"
+	case BlockStatementNode, *BlockStatementNode:
+		return "BlockStatement"
+	default:
+		return "ERR_UNKNOWN"
+	}
+}
+
 // JSONNode wraps an ASTNode with its kind for JSON marshalling
 type JSONNode struct {
-	Kind NodeKind `json:"kind"`
-	Data ASTNode  `json:"data"`
+	Kind string  `json:"kind"`
+	Data ASTNode `json:"data"`
 }
 
 // MarshalJSON custom marshaller for JSONNode
 func (n JSONNode) MarshalJSON() ([]byte, error) {
-	return json.Marshal(struct {
-		Kind NodeKind `json:"kind"`
-		Data ASTNode  `json:"data"`
-	}{
-		Kind: GetNodeKind(n.Data),
-		Data: n.Data,
-	})
+	// First, marshal the data node to get its fields
+	dataBytes, err := json.Marshal(n.Data)
+	if err != nil {
+		return nil, err
+	}
+
+	// Unmarshal into a map to manipulate
+	var dataMap map[string]interface{}
+	if err := json.Unmarshal(dataBytes, &dataMap); err != nil {
+		return nil, err
+	}
+
+	// Add the kind field to the map
+	dataMap["kind"] = GetNodeKindAsString(n.Data)
+
+	// Marshal the combined map
+	return json.Marshal(dataMap)
 }
 
 // UnmarshalJSON custom unmarshaller for JSONNode
 func (n *JSONNode) UnmarshalJSON(data []byte) error {
-	var raw struct {
-		Kind NodeKind        `json:"kind"`
-		Data json.RawMessage `json:"data"`
-	}
-	if err := json.Unmarshal(data, &raw); err != nil {
+	// First, unmarshal into a map to extract the kind
+	var dataMap map[string]interface{}
+	if err := json.Unmarshal(data, &dataMap); err != nil {
 		return err
 	}
 
-	n.Kind = raw.Kind
+	// Extract and remove the kind field
+	kindStr, ok := dataMap["kind"].(string)
+	if !ok {
+		return fmt.Errorf("missing or invalid 'kind' field")
+	}
+	n.Kind = kindStr
+	delete(dataMap, "kind")
 
-	var node ASTNode
-	switch raw.Kind {
-	case ProgramStatement:
-		node = &Program{}
-	case VariableDeclaration:
-		node = &VariableDeclarationNode{}
-	case FunctionDeclaration:
-		node = &FunctionDeclarationNode{}
-	case AssignmentExpr:
-		node = &AssignmentExprNode{}
-	case BinaryExpr:
-		node = &BinaryExprNode{}
-	case MemberExpr:
-		node = &MemberExprNode{}
-	case CallExpr:
-		node = &CallExprNode{}
-	case IdentifierExpr:
-		node = &IdentifierExprNode{}
-	case NumericLiteral:
-		node = &NumericLiteralExprNode{}
-	case StringLiteral:
-		node = &StringLiteralExprNode{}
-	case BooleanLiteral:
-		node = &BooleanLiteralExprNode{}
-	case NullLiteral:
-		node = &NullLiteralExprNode{}
-	case ArrayLiteral:
-		node = &ArrayLiteralExprNode{}
-	case Property:
-		node = &PropertyNode{}
-	case ObjectLiteral:
-		node = &ObjectLiteralExprNode{}
-	case UnaryExpr:
-		node = &UnaryExprNode{}
-	case LogicalExpr:
-		node = &LogicalExprNode{}
-	case ConditionalExpr:
-		node = &ConditionalExprNode{}
-	case IndexExpr:
-		node = &IndexExprNode{}
-	case IfStatement:
-		node = &IfStatementNode{}
-	case WhileStatement:
-		node = &WhileStatementNode{}
-	case ForStatement:
-		node = &ForStatementNode{}
-	case ReturnStatement:
-		node = &ReturnStatementNode{}
-	case BlockStatement:
-		node = &BlockStatementNode{}
-	default:
-		return fmt.Errorf("unknown node kind: %d", raw.Kind)
+	// Re-marshal the remaining data (without kind)
+	remainingData, err := json.Marshal(dataMap)
+	if err != nil {
+		return err
 	}
 
-	if err := json.Unmarshal(raw.Data, node); err != nil {
+	// Create the appropriate node type based on kind
+	var node ASTNode
+	switch kindStr {
+	case "ProgramStatement":
+		node = &Program{}
+	case "VariableDeclaration":
+		node = &VariableDeclarationNode{}
+	case "FunctionDeclaration":
+		node = &FunctionDeclarationNode{}
+	case "AssignmentExpr":
+		node = &AssignmentExprNode{}
+	case "BinaryExpr":
+		node = &BinaryExprNode{}
+	case "MemberExpr":
+		node = &MemberExprNode{}
+	case "CallExpr":
+		node = &CallExprNode{}
+	case "IdentifierExpr":
+		node = &IdentifierExprNode{}
+	case "NumericLiteral":
+		node = &NumericLiteralExprNode{}
+	case "StringLiteral":
+		node = &StringLiteralExprNode{}
+	case "BooleanLiteral":
+		node = &BooleanLiteralExprNode{}
+	case "NullLiteral":
+		node = &NullLiteralExprNode{}
+	case "ArrayLiteral":
+		node = &ArrayLiteralExprNode{}
+	case "Property":
+		node = &PropertyNode{}
+	case "ObjectLiteral":
+		node = &ObjectLiteralExprNode{}
+	case "UnaryExpr":
+		node = &UnaryExprNode{}
+	case "LogicalExpr":
+		node = &LogicalExprNode{}
+	case "ConditionalExpr":
+		node = &ConditionalExprNode{}
+	case "IndexExpr":
+		node = &IndexExprNode{}
+	case "IfStatement":
+		node = &IfStatementNode{}
+	case "WhileStatement":
+		node = &WhileStatementNode{}
+	case "ForStatement":
+		node = &ForStatementNode{}
+	case "ReturnStatement":
+		node = &ReturnStatementNode{}
+	case "BlockStatement":
+		node = &BlockStatementNode{}
+	default:
+		return fmt.Errorf("unknown node kind: %s", kindStr)
+	}
+
+	// Unmarshal the remaining data into the node
+	if err := json.Unmarshal(remainingData, node); err != nil {
 		return err
 	}
 	n.Data = node

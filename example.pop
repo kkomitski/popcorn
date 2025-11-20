@@ -1,5 +1,19 @@
-const foo = true
-const bar = false
+// Variable declarations
+let x = 10
+let y = 20
+const name = "popcorn"
 
-const bazTrue = foo || bar
-const bazFalse = foo && bar
+// Function declaration
+fn add(a, b) {
+  pop a + b
+}
+
+// Function call and assignment
+let sum = add(x, y)
+
+// const foo = sum + 10
+
+const obj = {
+  one: "one",
+  two: "two"
+}
