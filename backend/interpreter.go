@@ -236,20 +236,6 @@ func evalBinaryOp(node ast.BinaryExprNode, env *Environment) RuntimeVal {
 		case ">=":
 			return BoolValue{Value: leftNum.Value >= rightNum.Value}
 		}
-	// case "&&", "||":
-	// 	leftVal, isLeftBool := left.(BoolValue)
-	// 	rightVal, isRightBool := right.(BoolValue)
-
-	// 	if !isLeftBool || !isRightBool {
-	// 		log.Fatalf("Logical operators require boolean operands: %v, %v", left, right)
-	// 	}
-
-	// 	switch node.Operator {
-	// 	case "&&":
-	// 		return BoolValue{Value: leftVal.Value && rightVal.Value}
-	// 	case "||":
-	// 		return BoolValue{Value: leftVal.Value || rightVal.Value}
-	// 	}
 	default:
 		log.Fatalf("Unknown binary operator: %s", node.Operator)
 	}
