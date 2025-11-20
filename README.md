@@ -391,7 +391,8 @@ calculate(multiply, 4, 7)  // 28
 - [x] Early return with `pop` keyword
 - [x] Comparison operators (`==`, `!=`, `<`, `>`, `<=`, `>=`)
 - [x] String type and string operations
-- [x] Boolean logic operators (`&&`, `||`, `!`)
+- [x] Boolean logic operators (`&&`, `||`)
+- [x] Unary logic operators (`!`, `-`)
 - [x] Implement boolean keywords (`true`, `false`)
 - [ ] Control flow (`if`, `while`, `for`)
 - [ ] Array methods (push, pop, length, map, filter)
@@ -399,6 +400,12 @@ calculate(multiply, 4, 7)  // 28
 - [ ] Module system and imports
 - [ ] Error handling (try/catch)
 - [ ] Type annotations (optional)
+
+## 📝 TODO
+- [ ] Add a `line` property to the Token struct and carry it into the parser for error handling
+- [ ] Improve error handling across the language
+- [ ] Emit bytecode from the AST
+- [ ] Build a VM to read the bytecode
 
 ## 📄 License
 

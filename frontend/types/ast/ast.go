@@ -105,6 +105,13 @@ const (
 	Or                 BinaryOperatorKind = "||"
 )
 
+type UnaryOperatorKind string
+
+const (
+	Not UnaryOperatorKind = "!"
+	Negation UnaryOperatorKind = "-"
+)
+
 // ASTNode can be any AST node type
 type ASTNode any
 
@@ -456,7 +463,7 @@ type ObjectLiteralExprNode struct {
 // It handles operations like negation (-x) or logical NOT (!x).
 type UnaryExprNode struct {
 	// Operator specifies the unary operation (e.g., -, !, +)
-	Operator string
+	Operator UnaryOperatorKind
 	// Operand is the expression being operated on
 	Operand ASTNode
 }

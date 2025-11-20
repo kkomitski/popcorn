@@ -307,11 +307,11 @@ func (p *Parser) parseAdditiveExpr() ast.ASTNode {
 }
 
 func (p *Parser) parseMultiplicativeExpr() ast.ASTNode {
-	left := p.parseCallMemberExpr()
+	left := p.parseUnaryExpr()
 
 	for p.at().Value == "/" || p.at().Value == "*" || p.at().Value == "%" {
 		operator := p.eat().Value
-		right := p.parseCallMemberExpr()
+		right := p.parseUnaryExpr()
 		left = ast.BinaryExprNode{
 			Left:     left,
 			Right:    right,
@@ -320,6 +320,25 @@ func (p *Parser) parseMultiplicativeExpr() ast.ASTNode {
 	}
 
 	return left
+}
+
+func (p *Parser) parseUnaryExpr() ast.ASTNode {
+	tk := p.at()
+	// Check for unary minus or logical not
+	if (tk.TokenType == tokens.BinaryOperator && (tk.Value == "-" || tk.Value == "+")) ||
+		(tk.TokenType == tokens.UnaryOperator && tk.Value == "!") {
+		operator := p.eat().Value
+		operand := p.parseUnaryExpr()
+		if operator == "+" {
+			// Unary plus: just return the operand as-is
+			return operand
+		}
+		return ast.UnaryExprNode{
+			Operator: ast.UnaryOperatorKind(operator),
+			Operand:  operand,
+		}
+	}
+	return p.parseCallMemberExpr()
 }
 
 // * ======= CALL & MEMBER EXPRESSIONS ======= * \\

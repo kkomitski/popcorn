@@ -242,6 +242,28 @@ func evalBinaryOp(node ast.BinaryExprNode, env *Environment) RuntimeVal {
 	return Null
 }
 
+func evalUnaryOp(node ast.UnaryExprNode, env *Environment) RuntimeVal {
+	right := Evaluate(node.Operand, env)
+
+	switch node.Operator {
+	case "!":
+		rightBool, isRightBool := right.(BoolValue)
+		if !isRightBool {
+			log.Fatalf("Cannot negate a non-bool value! %v", right)
+		}
+		return BoolValue{Value: !rightBool.Value}
+	case "-":
+		rightNum, isRightNum := right.(NumberVal)
+		if !isRightNum {
+			log.Fatalf("Cannot negate a non-number value! %v", right)
+		}
+		return NumberVal{Value: -rightNum.Value}
+	default:
+		log.Fatalf("Unknown unary operator: %v", node.Operator)
+		return Null // unreachable, but keeps compiler happy
+	}
+}
+
 func evalVarLookup(node ast.IdentifierExprNode, env *Environment) RuntimeVal {
 	return env.GetVar(node.Symbol)
 }
@@ -353,6 +375,8 @@ func Evaluate(astNode ast.ASTNode, env *Environment) RuntimeVal {
 		return evalBool(node, env)
 	case ast.LogicalExprNode:
 		return evalLogicalExpr(node, env)
+	case ast.UnaryExprNode:
+		return evalUnaryOp(node, env)
 	default:
 		log.Fatalf("Node of type '%s' is not setup for evaluation.", node)
 	}

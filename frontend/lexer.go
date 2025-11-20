@@ -16,6 +16,7 @@ func Tokenize(sourceCode string) []tokens.Token {
 		'/':  tokens.BinaryOperator,
 		'*':  tokens.BinaryOperator,
 		'%':  tokens.BinaryOperator,
+		'!':  tokens.UnaryOperator,
 		'(':  tokens.OpenParen,
 		')':  tokens.CloseParen,
 		'{':  tokens.OpenBrace,

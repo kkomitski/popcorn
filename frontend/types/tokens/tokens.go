@@ -29,6 +29,7 @@ const (
     CloseBracket   // ]
     NewLine        // \n
     BinaryOperator
+    UnaryOperator // !
 
     // Strings
     Quotes // "
