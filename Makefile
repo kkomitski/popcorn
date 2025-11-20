@@ -10,3 +10,9 @@ test:
 .PHONY: build
 build: test
 	$(GO) build -o popcorn main.go
+
+# Build target depends on test
+.PHONY: run
+run: build
+	$(GO) run . $*
+
