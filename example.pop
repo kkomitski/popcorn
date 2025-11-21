@@ -1,8 +1,8 @@
-// let foo = 0
+let foz = 0
 
-// for(let i = 0; i < 10; i = i + 1) {
-//   foo = foo + 1
-// }
+for(let i = 0; i < 10; i = i + 1) {
+  foz = foz + 1
+}
 
 let foo = 0
 let bar = true

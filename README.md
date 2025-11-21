@@ -395,17 +395,21 @@ calculate(multiply, 4, 7)  // 28
 - [x] Unary logic operators (`!`, `-`)
 - [x] Implement boolean keywords (`true`, `false`)
 - [x] Control flow (`if`, `while`, `for`)
+- [ ] Emit bytecode from the AST
+- [ ] Build a VM to read the bytecode
 - [ ] Array methods (push, pop, length, map, filter)
 - [ ] Built-in standard library functions
 - [ ] Module system and imports
 - [ ] Error handling (try/catch)
 - [ ] Type annotations (optional)
 
+
 ## 📝 TODO
 - [ ] Add a `line` property to the Token struct and carry it into the parser for error handling
 - [ ] Improve error handling across the language
-- [ ] Emit bytecode from the AST
-- [ ] Build a VM to read the bytecode
+- [ ] Add support for increment (`++`) and decrement (`--`) operators
+- [ ] Add support for compound assignment operators (`+=`, `-=`, `*=`, `/=`, `%=`) 
+
 
 ## 📄 License
 

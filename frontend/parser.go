@@ -219,6 +219,11 @@ func (p *Parser) parseForStatement() ast.ASTNode {
 	init := p.parseStatement() // let i = 0
 	p.inForLoopHeader = false
 
+	// Check if init is a const declaration
+	if varDecl, ok := init.(ast.VariableDeclarationNode); ok && varDecl.Constant {
+		log.Fatalf("Cannot use a constant variable as the for-loop counter.")
+	}
+
 	p.expect(tokens.Semicolon, "Expected ';' after for loop initializer")
 	condition := p.parseExpr() // i < N
 	p.expect(tokens.Semicolon, "Expected ';' after for loop condition")
