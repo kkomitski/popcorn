@@ -343,6 +343,108 @@ func evalMember(node ast.MemberExprNode, env *Environment) RuntimeVal {
 	return Null
 }
 
+func evalForLoop(node ast.ForStatementNode, env *Environment) RuntimeVal {
+	// New scope for the for loop body
+	loopEnv := MakeEnvironment()
+	loopEnv.Parent = env
+
+	// Evaluate the init to load it into env
+	if node.Init != nil {
+		Evaluate(node.Init, loopEnv)
+	}
+
+	for {
+		// Re-evaluate the condition
+		conditionVal := Evaluate(node.Condition, loopEnv)
+		condition, isBoolCondition := conditionVal.(BoolValue)
+		if !isBoolCondition {
+			log.Fatalf("For loop condition does not evaluate to a boolean value: %v", condition)
+		}
+
+		// Condition is false
+		if !condition.Value {
+			break
+		}
+
+		// Evaluate the body
+		Evaluate(node.Body, loopEnv)
+
+		if node.Update != nil {
+			Evaluate(node.Update, loopEnv)
+		}
+	}
+
+	// For loops are statements so they don't resolve to a value
+	return Null
+}
+
+func evalWhileLoop(node ast.WhileStatementNode, env *Environment) RuntimeVal {
+	// New scope for the for loop body
+	loopEnv := MakeEnvironment()
+	loopEnv.Parent = env
+
+	for {
+		// Re-evaluate the condition
+		conditionVal := Evaluate(node.Condition, loopEnv)
+		condition, isBoolCondition := conditionVal.(BoolValue)
+		if !isBoolCondition {
+			log.Fatalf("For loop condition does not evaluate to a boolean value: %v", condition)
+		}
+
+		// Condition is false
+		if !condition.Value {
+			break
+		}
+
+		// Evaluate the body
+		Evaluate(node.Body, loopEnv)
+	}
+
+	// While loops are statements so they don't resolve to a value
+	return Null
+}
+
+
+func evalIfStatement(node ast.IfStatementNode, env *Environment) RuntimeVal {
+	// New scope for the for loop body
+	ifBlockEnv := MakeEnvironment()
+	ifBlockEnv.Parent = env
+
+	condition := Evaluate(node.Condition, ifBlockEnv)
+
+	conditionVal, isConditionBool := condition.(BoolValue)
+
+	if !isConditionBool {
+		log.Fatalf("If statement condition must evaluate to a boolean: %v", conditionVal)
+	}
+
+	if !conditionVal.Value {
+		return Null
+	}
+
+	// consequent := Evaluate(node.Consequent, ifBlockEnv)
+
+	// We will only support block statements as consequent
+	consequentVal, isConsequentBlock := node.Consequent.(ast.BlockStatementNode)
+
+	if !isConsequentBlock {
+		log.Fatalf("If statement must have a block statement as the body %v: ", consequentVal)
+	}
+
+	Evaluate(consequentVal, ifBlockEnv)
+
+	// While loops are statements so they don't resolve to a value
+	return Null
+}
+
+func evalBlockStatement(node ast.BlockStatementNode, env *Environment) RuntimeVal {
+	for _, stmt := range node.Body {
+		Evaluate(stmt, env)
+	}
+
+	return Null
+}
+
 func Evaluate(astNode ast.ASTNode, env *Environment) RuntimeVal {
 	switch node := astNode.(type) {
 	case ast.AssignmentExprNode:
@@ -377,8 +479,16 @@ func Evaluate(astNode ast.ASTNode, env *Environment) RuntimeVal {
 		return evalLogicalExpr(node, env)
 	case ast.UnaryExprNode:
 		return evalUnaryOp(node, env)
+	case ast.ForStatementNode:
+		return evalForLoop(node, env)
+	case ast.WhileStatementNode:
+		return evalWhileLoop(node, env)
+	case ast.BlockStatementNode:
+		return evalBlockStatement(node, env)
+	case ast.IfStatementNode:
+		return evalIfStatement(node, env)
 	default:
-		log.Fatalf("Node of type '%s' is not setup for evaluation.", node)
+		log.Fatalf("Node of type '%s' is not setup for evaluation.", ast.GetNodeKindAsString(node))
 	}
 
 	return Null

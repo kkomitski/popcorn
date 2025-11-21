@@ -42,6 +42,10 @@ func Tokenize(sourceCode string) []tokens.Token {
 		"true":  tokens.True,
 		"false": tokens.False,
 		"null":  tokens.Null,
+		"while": tokens.While,
+		"for":   tokens.For,
+		"if":    tokens.If,
+		"else":  tokens.Else,
 	}
 
 	comparers := map[string]tokens.TokenType{

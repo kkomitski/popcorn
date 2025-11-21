@@ -394,7 +394,7 @@ calculate(multiply, 4, 7)  // 28
 - [x] Boolean logic operators (`&&`, `||`)
 - [x] Unary logic operators (`!`, `-`)
 - [x] Implement boolean keywords (`true`, `false`)
-- [ ] Control flow (`if`, `while`, `for`)
+- [x] Control flow (`if`, `while`, `for`)
 - [ ] Array methods (push, pop, length, map, filter)
 - [ ] Built-in standard library functions
 - [ ] Module system and imports

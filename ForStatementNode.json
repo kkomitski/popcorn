@@ -1,0 +1,1 @@
+{"Init":{"Constant":false,"Identifier":"i","Value":{"Value":0}},"Condition":{"Left":{"Symbol":"i"},"Right":{"Value":10},"Operator":"\u003c"},"Update":{"Assignee":{"Symbol":"i"},"Value":{"Left":{"Symbol":"i"},"Right":{"Value":1},"Operator":"+"}},"Body":{"Body":[{"Assignee":{"Symbol":"foo"},"Value":{"Left":{"Symbol":"foo"},"Right":{"Value":1},"Operator":"+"}}]}}

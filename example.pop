@@ -1,1 +1,19 @@
-const notTrue = 10
+// let foo = 0
+
+// for(let i = 0; i < 10; i = i + 1) {
+//   foo = foo + 1
+// }
+
+let foo = 0
+let bar = true
+
+while(bar) {
+  foo = foo + 1
+
+  if(foo == 10) {
+    bar = false
+  }
+}
+
+bar
+foo

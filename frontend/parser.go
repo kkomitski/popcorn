@@ -10,8 +10,9 @@ import (
 )
 
 type Parser struct {
-	Tokens []tokens.Token
-	Pos    int
+	Tokens          []tokens.Token
+	Pos             int
+	inForLoopHeader bool
 }
 
 // * ========= UTILS ========= * \\
@@ -58,6 +59,12 @@ func (p *Parser) parseStatement() ast.ASTNode {
 		return p.parseFnDeclaration()
 	case tokens.Pop:
 		return p.parseFnReturn()
+	case tokens.If:
+		return p.parseIfStatement()
+	case tokens.While:
+		return p.parseWhileStatement()
+	case tokens.For:
+		return p.parseForStatement()
 	default:
 		node := p.parseExpr()
 
@@ -120,7 +127,9 @@ func (p *Parser) parseVarDeclaration() ast.ASTNode {
 		Value:      p.parseExpr(),
 	}
 
-	p.expect(tokens.NewLine, "Variable declaration statement must end with a new line")
+	if !p.inForLoopHeader {
+		p.expect(tokens.NewLine, "Variable declaration statement must end with a new line")
+	}
 
 	return declaration
 }
@@ -165,6 +174,84 @@ func (p *Parser) parseFnDeclaration() ast.ASTNode {
 		Params: params,
 		Body:   body,
 	}
+}
+
+func (p *Parser) parseIfStatement() ast.ASTNode {
+	p.eat() // eat 'if'
+	condition := p.parseExpr()
+	consequent := p.parseBlockStatement()
+
+	var alternate ast.ASTNode = nil
+	if p.at().TokenType == tokens.Else {
+		p.eat() // eat the 'else' keyword
+
+		if p.at().TokenType == tokens.If {
+			alternate = p.parseIfStatement()
+		} else {
+			p.expect(tokens.OpenBrace, "Expected { after 'else' condition keyword")
+			alternate = p.parseBlockStatement()
+		}
+	}
+
+	return ast.IfStatementNode{
+		Condition:  condition,
+		Consequent: consequent,
+		Alternate:  alternate,
+	}
+}
+
+func (p *Parser) parseWhileStatement() ast.ASTNode {
+	p.eat() // eat 'while' keyword
+	condition := p.parseExpr()
+	body := p.parseBlockStatement()
+	return ast.WhileStatementNode{
+		Condition: condition,
+		Body:      body,
+	}
+}
+
+// Should throw error if a constant variable is set as the counter
+func (p *Parser) parseForStatement() ast.ASTNode {
+	p.eat() // eat 'for' keyword
+	p.expect(tokens.OpenParen, "Expected '(' after for")
+
+	p.inForLoopHeader = true
+	init := p.parseStatement() // let i = 0
+	p.inForLoopHeader = false
+
+	p.expect(tokens.Semicolon, "Expected ';' after for loop initializer")
+	condition := p.parseExpr() // i < N
+	p.expect(tokens.Semicolon, "Expected ';' after for loop condition")
+	update := p.parseExpr() // i++
+	p.expect(tokens.CloseParen, "Expected ')' after for update")
+	body := p.parseBlockStatement()
+
+	return ast.ForStatementNode{
+		Init:      init,
+		Condition: condition,
+		Update:    update,
+		Body:      body,
+	}
+}
+
+// Should open a new block scope
+func (p *Parser) parseBlockStatement() ast.ASTNode {
+	p.expect(tokens.OpenBrace, "Expected block statement to start with {")
+	body := []ast.ASTNode{}
+
+	for p.notEOF() && p.at().TokenType != tokens.CloseBrace {
+		if p.at().TokenType == tokens.NewLine {
+			p.eat() // eat any newlines inside the block statement
+		}
+
+		body = append(body, p.parseStatement())
+	}
+	p.expect(tokens.CloseBrace, "Expected block statement to end with }")
+
+	if p.at().TokenType == tokens.NewLine {
+		p.eat() // eat any newlines after the block statement
+	}
+	return ast.BlockStatementNode{Body: body}
 }
 
 // * ======= EXPRESSIONS ======= * \\

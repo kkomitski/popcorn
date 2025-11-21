@@ -52,6 +52,12 @@ const (
     True
     False
 
+		// Control flow statements
+		If
+		Else
+		While
+		For
+
     // End of File
     EOF
 )
